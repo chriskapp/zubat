@@ -1,6 +1,4 @@
 /**
- * $Id: Account.java 212 2011-12-20 23:32:51Z k42b3.x@gmail.com $
- * 
  * zubat
  * An java application to access the API of amun. It is used to debug and
  * control a website based on amun. This is the reference implementation 
@@ -34,10 +32,9 @@ import org.w3c.dom.NodeList;
 /**
  * Account
  *
- * @author     Christoph Kappestein <k42b3.x@gmail.com>
- * @license    http://www.gnu.org/licenses/gpl.html GPLv3
- * @link       http://code.google.com/p/delta-quadrant
- * @version    $Revision: 212 $
+ * @author  Christoph Kappestein <k42b3.x@gmail.com>
+ * @license http://www.gnu.org/licenses/gpl.html GPLv3
+ * @link    https://github.com/k42b3/zubat
  */
 public class Account extends HashMap<String, String>
 {
