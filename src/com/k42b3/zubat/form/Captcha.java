@@ -39,4 +39,9 @@ public class Captcha extends JTextField implements FormElementInterface
 	{
 		return this.getText();
 	}
+	
+	public void setValue(String text)
+	{
+		this.setText(text);
+	}
 }

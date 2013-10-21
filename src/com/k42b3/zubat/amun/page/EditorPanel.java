@@ -28,9 +28,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.LinkedHashMap;
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -41,8 +41,13 @@ import javafx.scene.web.WebView;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -53,10 +58,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.k42b3.neodym.Http;
+import com.k42b3.neodym.Message;
 import com.k42b3.zubat.Configuration;
 import com.k42b3.zubat.Zubat;
 import com.k42b3.zubat.basic.FormPanel;
-import com.k42b3.zubat.form.FormElementInterface;
 import com.k42b3.zubat.model.Page;
 
 /**
@@ -68,7 +73,7 @@ import com.k42b3.zubat.model.Page;
  */
 public class EditorPanel extends com.k42b3.zubat.basic.EditorPanel
 {
-	protected LinkedHashMap<String, FormElementInterface> fields;
+	protected FormPanel form;
 	protected RSyntaxTextArea textarea;
 	protected JFXPanel webpanel;
 	protected WebView webview;
@@ -82,14 +87,17 @@ public class EditorPanel extends com.k42b3.zubat.basic.EditorPanel
 	
 	public JComponent getComponent() throws Exception
 	{
-		FormPanel form = new FormPanel(item.getUri() + "/form?method=update&id=" + getRecordId());
-		fields = form.getRequestFields();
-
 		JPanel panel = new JPanel(new BorderLayout());
+		
+		// get form
+		form = new FormPanel(item.getUri() + "/form?method=update&id=" + getRecordId());
+		
+		// menu
+		panel.add(getMenuBar(), BorderLayout.NORTH);
 		
 		// textarea
 		textarea = new RSyntaxTextArea();
-		textarea.setText(fields.get("content").getValue());
+		textarea.setText(form.getRequestFields().get("content").getValue());
 		textarea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
 
 		// webview
@@ -216,6 +224,40 @@ public class EditorPanel extends com.k42b3.zubat.basic.EditorPanel
 		}
 	}
 	
+	protected JMenuBar getMenuBar()
+	{
+		JMenuBar menuBar = new JMenuBar();
+		JMenu menu = new JMenu("File");
+		
+		JMenuItem itemPreview = new JMenuItem("Preview");
+		itemPreview.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+		itemPreview.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e)
+			{
+				preview();
+			}
+			
+		});
+		menu.add(itemPreview);
+
+		JMenuItem itemPublish= new JMenuItem("Publish");
+		itemPublish.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK));
+		itemPublish.addActionListener(new ActionListener() {
+			
+			public void actionPerformed(ActionEvent e)
+			{
+				publish();
+			}
+			
+		});
+		menu.add(itemPublish);
+
+		menuBar.add(menu);
+		
+		return menuBar;
+	}
+
 	protected void preview()
 	{
 		Platform.runLater(new Runnable(){
@@ -231,9 +273,33 @@ public class EditorPanel extends com.k42b3.zubat.basic.EditorPanel
             
         });
 	}
-	
+
 	protected void publish()
 	{
-		
+		try
+		{
+			form.getRequestFields().get("content").setValue(textarea.getText());
+			
+			Document doc = form.sendRequest();
+			Element rootElement = (Element) doc.getDocumentElement();
+
+			// get message
+			Message msg = Message.parseMessage(rootElement);
+
+			if(msg.hasSuccess())
+			{
+				JOptionPane.showMessageDialog(null, msg.getText(), "Response", JOptionPane.INFORMATION_MESSAGE);
+			}
+			else
+			{
+				throw new Exception(msg.getText());
+			}
+		}
+		catch(Exception ex)
+		{
+			JOptionPane.showMessageDialog(null, ex.getMessage(), "Response", JOptionPane.ERROR_MESSAGE);
+
+			Zubat.handleException(ex);
+		}
 	}
 }

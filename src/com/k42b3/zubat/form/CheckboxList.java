@@ -88,4 +88,9 @@ public class CheckboxList extends JPanel implements FormElementInterface
 
 		return values.toString();
 	}
+	
+	public void setValue(String text)
+	{
+		//this.setText(text);
+	}
 }

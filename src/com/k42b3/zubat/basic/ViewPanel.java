@@ -85,6 +85,11 @@ public class ViewPanel extends JPanel
 		this.buildComponent();
 	}
 
+	public JTable getTable()
+	{
+		return table;
+	}
+	
 	protected ViewTableModel getTableModel() throws Exception
 	{
 		ViewTableModel tm = new ViewTableModel(service.getUri());
@@ -108,11 +113,6 @@ public class ViewPanel extends JPanel
 		this.add(this.buildSearch(), BorderLayout.NORTH);
 
 		this.add(this.buildButtons(), BorderLayout.SOUTH);
-	}
-
-	public JTable getTable()
-	{
-		return table;
 	}
 
 	protected Component buildTable()
@@ -146,7 +146,7 @@ public class ViewPanel extends JPanel
 		return buttons;
 	}
 
-	protected class SearchPanel extends JPanel
+	private class SearchPanel extends JPanel
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -157,7 +157,7 @@ public class ViewPanel extends JPanel
 			this.setLayout(new BorderLayout());
 
 			this.add(this.buildSearch(), BorderLayout.CENTER);
-			this.add(this.buildColumn(), BorderLayout.EAST);
+			//this.add(this.buildColumn(), BorderLayout.EAST);
 		}
 
 		private Component buildSearch()
@@ -173,7 +173,7 @@ public class ViewPanel extends JPanel
 			JLabel lblSearch = new JLabel("Search:");
 			lblSearch.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-			cboField = new JComboBox<String>(new DefaultComboBoxModel(tm.getSupportedFields().toArray()));
+			cboField = new JComboBox<String>(new DefaultComboBoxModel(fields.toArray()));
 			cboField.setPreferredSize(new Dimension(100, 22));
 
 			String[] operators = {"contains", "equals", "startsWith", "present"};
@@ -270,7 +270,7 @@ public class ViewPanel extends JPanel
 		}
 	}
 
-	protected class ButtonsPanel extends JPanel
+	private class ButtonsPanel extends JPanel
 	{
 		private static final long serialVersionUID = 1L;
 

@@ -22,11 +22,18 @@
 
 package com.k42b3.zubat.basic;
 
+import java.util.ArrayList;
+
 import javax.swing.JComponent;
 
 import com.k42b3.neodym.ServiceItem;
-import com.k42b3.zubat.EditorAbstract;
+import com.k42b3.zubat.Configuration;
 import com.k42b3.zubat.Zubat;
+import com.k42b3.zubat.container.ContainerEvent;
+import com.k42b3.zubat.container.ContainerEventListener;
+import com.k42b3.zubat.container.ContainerLoadFinishedEvent;
+import com.k42b3.zubat.container.ContainerRequestLoadEvent;
+import com.k42b3.zubat.container.EditorAbstract;
 import com.k42b3.zubat.model.Page;
 
 /**
@@ -50,7 +57,13 @@ public class EditorPanel extends EditorAbstract
 
 		if(item != null)
 		{
+			// container
 			container = new com.k42b3.zubat.basic.Container(item);
+			
+			// event handler
+			addContainerListener(new ContainerSelfListener());
+
+			container.addContainerListener(new ContainerChildListener());
 		}
 		else
 		{
@@ -60,6 +73,33 @@ public class EditorPanel extends EditorAbstract
 
 	public JComponent getComponent() throws Exception
 	{
-		return container.getComponent();
+		return container;
+	}
+
+	private class ContainerSelfListener implements ContainerEventListener
+	{
+		public void containerEvent(ContainerEvent event)
+		{
+			if(event instanceof ContainerLoadFinishedEvent)
+			{
+				ArrayList<String> fields = Configuration.getFieldsForService(item);
+
+				container.onLoad(fields);
+			}
+		}
+	}
+	
+	private class ContainerChildListener implements ContainerEventListener
+	{
+		public void containerEvent(ContainerEvent event)
+		{
+			if(event instanceof ContainerRequestLoadEvent)
+			{
+				fireContainer(event);
+			}
+			else if(event instanceof ContainerLoadFinishedEvent)
+			{
+			}
+		}
 	}
 }

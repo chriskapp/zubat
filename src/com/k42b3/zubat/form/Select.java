@@ -54,4 +54,9 @@ public class Select extends JComboBox implements FormElementInterface
 			return null;
 		}
 	}
+	
+	public void setValue(String text)
+	{
+		this.setSelectedItem(text);
+	}
 }

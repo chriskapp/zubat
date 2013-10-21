@@ -39,4 +39,9 @@ public class Textarea extends JTextArea implements FormElementInterface
 	{
 		return this.getText();
 	}
+	
+	public void setValue(String text)
+	{
+		this.setText(text);
+	}
 }

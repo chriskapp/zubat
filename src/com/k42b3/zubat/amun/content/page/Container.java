@@ -24,20 +24,25 @@ package com.k42b3.zubat.amun.content.page;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.k42b3.neodym.ServiceItem;
-import com.k42b3.zubat.ContainerEvent;
-import com.k42b3.zubat.ContainerEventListener;
-import com.k42b3.zubat.ContainerLoadEvent;
-import com.k42b3.zubat.ModuleAbstract;
-import com.k42b3.zubat.PageItem;
-import com.k42b3.zubat.Zubat;
+import com.k42b3.zubat.basic.ViewPanel;
+import com.k42b3.zubat.container.ContainerEvent;
+import com.k42b3.zubat.container.ContainerEventListener;
+import com.k42b3.zubat.container.ContainerLoadFinishedEvent;
+import com.k42b3.zubat.container.ContainerRequestEditorEvent;
+import com.k42b3.zubat.container.ContainerRequestLoadEvent;
+import com.k42b3.zubat.container.ServiceAbstract;
+import com.k42b3.zubat.model.Page;
 
 /**
  * Container
@@ -46,7 +51,7 @@ import com.k42b3.zubat.Zubat;
  * @license http://www.gnu.org/licenses/gpl.html GPLv3
  * @link    https://github.com/k42b3/zubat
  */
-public class Container extends ModuleAbstract
+public class Container extends ServiceAbstract
 {
 	protected TreePanel treePanel;
 	protected com.k42b3.zubat.basic.Container container;
@@ -56,26 +61,18 @@ public class Container extends ModuleAbstract
 		super(item);
 
 		container = new com.k42b3.zubat.basic.Container(item);
-		
+
 		// event handler
-		container.addContainerListener(new ContainerEventListener() {
+		addContainerListener(new ContainerSelfListener());
 
-			public void containerEvent(ContainerEvent event)
-			{
-				if(event instanceof ContainerLoadEvent)
-				{
-					fireContainer(event);
-				}
-			}
-
-		});
+		container.addContainerListener(new ContainerChildListener());
 	}
 
 	public String getTitle()
 	{
 		return "Page";
 	}
-
+	
 	public JComponent getComponent()
 	{
 		JPanel panel = new JPanel();
@@ -85,6 +82,28 @@ public class Container extends ModuleAbstract
 		treePanel = new TreePanel();
 		treePanel.setPreferredSize(new Dimension(150, 100));
 		treePanel.setMinimumSize(new Dimension(100, 100));
+		treePanel.getTree().addMouseListener(new MouseAdapter() {
+			
+			public void mouseClicked(MouseEvent e)
+			{
+				if(e.getClickCount() == 2)
+				{
+					JTree tree = (JTree) e.getSource();
+					DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getSelectionPath().getLastPathComponent();
+					
+					if(node != null)
+					{
+						Page page = (Page) node.getUserObject();
+
+						if(page != null)
+						{
+							container.fireContainer(new ContainerRequestEditorEvent(page));
+						}
+					}
+				}
+			}
+
+		});
 
 		panel.add(treePanel, BorderLayout.WEST);
 
@@ -100,29 +119,40 @@ public class Container extends ModuleAbstract
 
 		return panel;
 	}
-
-	protected void loadFinished(JComponent component, Exception lastException)
+	
+	private class ContainerSelfListener implements ContainerEventListener
 	{
-		super.loadFinished(component, lastException);
-
-		treePanel.reload();
-		container.onLoad(fields);
-	}
-
-	private class TreeListener implements TreeSelectionListener
-	{
-		public void valueChanged(TreeSelectionEvent e) 
+		public void containerEvent(ContainerEvent event)
 		{
-			if(e.getNewLeadSelectionPath() != null)
+			if(event instanceof ContainerLoadFinishedEvent)
 			{
-				DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getNewLeadSelectionPath().getLastPathComponent();
+				// load tree
+				treePanel.reload();
+				
+				// load container
+				container.onLoad(fields);
+			}
+		}
+	}
+	
+	private class ContainerChildListener implements ContainerEventListener
+	{
+		public void containerEvent(ContainerEvent event)
+		{
+			if(event instanceof ContainerRequestLoadEvent)
+			{
+				fireContainer(event);
+			}
+			else if(event instanceof ContainerLoadFinishedEvent)
+			{
+				// hide specific columns
+				JTabbedPane tp = (JTabbedPane) ((ContainerLoadFinishedEvent) event).getComponent();
+				ViewPanel panel = (ViewPanel) tp.getComponent(0);
 
-				if(node != null)
-				{
-					PageItem item = (PageItem) node.getUserObject();
-					
-					fireContainer(new ContainerLoadEvent(Zubat.getAvailableServices().getItem(item.getType())));
-				}
+				JTable table = panel.getTable();
+				table.getColumnModel().removeColumn(table.getColumnModel().getColumn(0));
+				table.getColumnModel().removeColumn(table.getColumnModel().getColumn(0));
+				table.getColumnModel().removeColumn(table.getColumnModel().getColumn(0));
 			}
 		}
 	}

@@ -38,9 +38,13 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.k42b3.neodym.ServiceItem;
-import com.k42b3.zubat.EditorAbstract;
-import com.k42b3.zubat.ModuleAbstract;
 import com.k42b3.zubat.Zubat;
+import com.k42b3.zubat.container.ContainerEvent;
+import com.k42b3.zubat.container.ContainerEventListener;
+import com.k42b3.zubat.container.ContainerLoadFinishedEvent;
+import com.k42b3.zubat.container.ContainerRequestEditorEvent;
+import com.k42b3.zubat.container.EditorAbstract;
+import com.k42b3.zubat.container.ServiceAbstract;
 import com.k42b3.zubat.model.Page;
 
 /**
@@ -50,7 +54,7 @@ import com.k42b3.zubat.model.Page;
  * @license http://www.gnu.org/licenses/gpl.html GPLv3
  * @link    https://github.com/k42b3/zubat
  */
-public class Container extends ModuleAbstract
+public class Container extends ServiceAbstract
 {
 	private static final long serialVersionUID = 1L;
 
@@ -61,11 +65,15 @@ public class Container extends ModuleAbstract
 
 	protected JTabbedPane tp;
 	protected ViewPanel view;
+	protected JFrame editorFrame;
 	protected int selectedId = 0;
 
 	public Container(ServiceItem item) throws Exception
 	{
 		super(item);
+		
+		// event handler
+		addContainerListener(new ContainerSelfListener());
 	}
 
 	public String getTitle()
@@ -96,12 +104,33 @@ public class Container extends ModuleAbstract
 		
 		return tp;
 	}
-	
-	protected void loadFinished(JComponent component, Exception lastException)
+
+	public ViewPanel getView()
 	{
-		super.loadFinished(component, lastException);
-		
-		renderTabs();
+		return view;
+	}
+	
+	protected void setSelectedId(int selectedId)
+	{
+		if(selectedId > 0)
+		{
+			tp.setEnabledAt(2, true);
+			tp.setEnabledAt(3, true);
+
+			this.selectedId = selectedId;
+		}
+		else
+		{
+			tp.setEnabledAt(2, false);
+			tp.setEnabledAt(3, false);
+
+			this.selectedId = 0;
+		}
+	}
+
+	protected int getSelectedId()
+	{
+		return this.selectedId;
 	}
 
 	protected void renderTabs()
@@ -139,30 +168,7 @@ public class Container extends ModuleAbstract
 			worker.execute();
 		}
 	}
-
-	public void setSelectedId(int selectedId)
-	{
-		if(selectedId > 0)
-		{
-			tp.setEnabledAt(2, true);
-			tp.setEnabledAt(3, true);
-
-			this.selectedId = selectedId;
-		}
-		else
-		{
-			tp.setEnabledAt(2, false);
-			tp.setEnabledAt(3, false);
-
-			this.selectedId = 0;
-		}
-	}
-
-	public int getSelectedId()
-	{
-		return this.selectedId;
-	}
-
+	
 	protected ChangeListener getChangeListener()
 	{
 		return new ContainerChangeListener();
@@ -195,18 +201,20 @@ public class Container extends ModuleAbstract
 					{
 						JTable table = (JTable) e.getSource();
 						Object id = table.getModel().getValueAt(table.getSelectedRow(), 0);
-						Object path = table.getModel().getValueAt(table.getSelectedRow(), 2);
-						Object serviceType = table.getModel().getValueAt(table.getSelectedRow(), 6);
+						Object serviceType = table.getModel().getValueAt(table.getSelectedRow(), 2);
+						Object path = table.getModel().getValueAt(table.getSelectedRow(), 3);
+						Object title = table.getModel().getValueAt(table.getSelectedRow(), 4);
 						
-						if(id != null && path != null && serviceType != null)
+						if(id != null && serviceType != null && path != null && title != null)
 						{
-							Page page = new Page();
-							page.setId(Integer.parseInt(id.toString()));
-							page.setPath(path.toString());
-							page.setServiceType(serviceType.toString());
+							Page page = new Page(
+								Integer.parseInt(id.toString()),
+								title.toString(),
+								path.toString(),
+								serviceType.toString()
+							);
 
-							// open editor
-							openEditor(page);
+							fireContainer(new ContainerRequestEditorEvent(page));
 						}
 					}
 					catch(Exception ex)
@@ -233,37 +241,55 @@ public class Container extends ModuleAbstract
 		}
 	}
 
-	protected void openEditor(Page page) throws Exception
+	protected void openEditor(Page page)
 	{
-		EditorAbstract instance;
-		String className = Zubat.getClassNameFromType(page.getServiceType(), "EditorPanel");
-
 		try
 		{
-			Class<?> editor = Class.forName(className);
+			EditorAbstract module;
+			String className = Zubat.getClassNameFromType(page.getServiceType(), "EditorPanel");
 
-			instance = (EditorAbstract) editor.getConstructor(Page.class).newInstance(page);
+			try
+			{
+				Class<?> editor = Class.forName(className);
+
+				module = (EditorAbstract) editor.getConstructor(Page.class).newInstance(page);
+			}
+			catch(ClassNotFoundException ex)
+			{
+				module = new com.k42b3.zubat.basic.EditorPanel(page);
+			}
+			
+			logger.info("Load class " + module.getClass().getName());
+
+			// close existing frame
+			if(editorFrame != null)
+			{
+				editorFrame.setVisible(true);
+			}
+
+			// frame
+			editorFrame = new JFrame();
+			editorFrame.setTitle("Edit - /" + page.getPath());
+			editorFrame.setLocation(100, 100);
+			editorFrame.setSize(800, 600);
+			editorFrame.setMinimumSize(this.getSize());
+			editorFrame.setLayout(new BorderLayout());
+			editorFrame.add(module, BorderLayout.CENTER);
+			editorFrame.setVisible(true);
+
+			// event handler
+			module.addContainerListener(new ContainerEditorListener());
+
+			// load
+			module.onLoad();
 		}
-		catch(ClassNotFoundException ex)
+		catch(Exception e)
 		{
-			instance = new com.k42b3.zubat.basic.EditorPanel(page);
+			Zubat.handleException(e);
 		}
-		
-		logger.info("Load class " + instance.getClass().getName());
-		
-		JFrame frame = new JFrame();
-		frame.setTitle("Edit");
-		frame.setLocation(100, 100);
-		frame.setSize(820, 600);
-		frame.setMinimumSize(this.getSize());
-		frame.setLayout(new BorderLayout());
-		frame.add(instance, BorderLayout.CENTER);
-		frame.setVisible(true);
-
-		instance.onLoad();
 	}
 
-	class ContainerChangeListener implements ChangeListener
+	private class ContainerChangeListener implements ChangeListener
 	{
 		public void stateChanged(ChangeEvent e)
 		{
@@ -274,7 +300,7 @@ public class Container extends ModuleAbstract
 		}
 	}
 		
-	class ViewWorker extends SwingWorker<Void, Exception>
+	private class ViewWorker extends SwingWorker<Void, Exception>
 	{
 		protected Void doInBackground()
 		{
@@ -295,7 +321,7 @@ public class Container extends ModuleAbstract
 		}
 	}
 	
-	class FormWorker extends SwingWorker<Void, Exception>
+	private class FormWorker extends SwingWorker<Void, Exception>
 	{
 		protected Exception lastException;
 		protected String url;
@@ -319,5 +345,30 @@ public class Container extends ModuleAbstract
         {
         	tp.setComponentAt(type, component);
         }
+	}
+	
+	private class ContainerSelfListener implements ContainerEventListener
+	{
+		public void containerEvent(ContainerEvent event)
+		{
+			if(event instanceof ContainerLoadFinishedEvent)
+			{
+				renderTabs();
+			}
+			else if(event instanceof ContainerRequestEditorEvent)
+			{
+				openEditor(((ContainerRequestEditorEvent) event).getPage());
+			}
+		}
+	}
+	
+	private class ContainerEditorListener implements ContainerEventListener
+	{
+		public void containerEvent(ContainerEvent event)
+		{
+			if(event instanceof ContainerLoadFinishedEvent)
+			{
+			}
+		}
 	}
 }

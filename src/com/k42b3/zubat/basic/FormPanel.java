@@ -107,6 +107,46 @@ public class FormPanel extends JPanel
 		return requestFields;
 	}
 	
+	public Document sendRequest() throws Exception
+	{
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		DocumentBuilder db = dbf.newDocumentBuilder();
+		Document doc = db.newDocument();
+		doc.setXmlStandalone(true);
+
+		Set<String> keys = requestFields.keySet();
+
+		Element root = doc.createElement("request");
+
+		for(String key : keys)
+		{
+			Element e = doc.createElement(key);
+			e.setTextContent(requestFields.get(key).getValue());
+
+			root.appendChild(e);
+		}
+
+		doc.appendChild(root);
+
+		// xml to string
+		Transformer transformer = TransformerFactory.newInstance().newTransformer();
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+
+		StreamResult result = new StreamResult(new StringWriter());
+		DOMSource source = new DOMSource(doc);
+		transformer.transform(source, result);
+
+		String requestContent = result.getWriter().toString();
+
+		// send request
+		HashMap<String, String> header = new HashMap<String, String>();
+
+		header.put("Content-Type", "application/xml");
+		header.put("X-HTTP-Method-Override", requestMethod);
+
+		return Zubat.getHttp().requestXml(Http.POST, requestUrl, header, requestContent);
+	}
+
 	protected void buildComponent() throws Exception
 	{
 		// form panel
@@ -161,7 +201,7 @@ public class FormPanel extends JPanel
 
 		this.add(buttons, BorderLayout.SOUTH);		
 	}
-
+	
 	protected void request(String url) throws Exception
 	{
 		// request
@@ -195,49 +235,6 @@ public class FormPanel extends JPanel
 
 			body.add(error);
 		}
-	}
-
-	protected Document sendRequest() throws Exception
-	{
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		Document doc = db.newDocument();
-		doc.setXmlStandalone(true);
-
-		Set<String> keys = requestFields.keySet();
-
-		Element root = doc.createElement("request");
-
-		for(String key : keys)
-		{
-			Element e = doc.createElement(key);
-			e.setTextContent(requestFields.get(key).getValue());
-
-			root.appendChild(e);
-		}
-
-		doc.appendChild(root);
-
-
-		// xml to string
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-		StreamResult result = new StreamResult(new StringWriter());
-		DOMSource source = new DOMSource(doc);
-		transformer.transform(source, result);
-
-		String requestContent = result.getWriter().toString();
-
-
-		// send request
-		HashMap<String, String> header = new HashMap<String, String>();
-
-		header.put("Content-type", "application/xml");
-		header.put("X-HTTP-Method-Override", requestMethod);
-
-
-		return Zubat.getHttp().requestXml(Http.POST, requestUrl, header, requestContent);
 	}
 
 	protected Container parse(Node node) throws Exception

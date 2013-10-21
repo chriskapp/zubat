@@ -27,6 +27,14 @@ import java.io.File;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+
+import com.alee.laf.WebLookAndFeel;
+
 /**
  * Entry
  *
@@ -40,19 +48,31 @@ public class Entry
 	{
 		try
 		{
-			// init config file
-			File configFile = getConfigFile(args);
+			// parse args
+			Options options = new Options();
+			options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("path to the configuration xml").create("config"));
+			options.addOption("auth", false, "starts the authentication process");
+			options.addOption("debug", false, "enables debug mode");
+			
+			CommandLineParser parser = new GnuParser();
+			CommandLine line = parser.parse(options, args);
 
-			if(configFile == null)
+			// init config file
+			File configFile;
+			
+			if(line.hasOption("config"))
+			{
+				configFile = new File(line.getOptionValue("config"));
+			}
+			else
 			{
 				configFile = new File("zubat.conf.xml");
 			}
 
 			Configuration.initInstance(configFile);
 
-
 			// start
-			if(isAuth(args))
+			if(line.hasOption("auth"))
 			{
 				SwingUtilities.invokeLater(new Runnable() {
 
@@ -87,49 +107,14 @@ public class Entry
 		}
 	}
 
-	public static File getConfigFile(String[] args)
-	{
-		boolean foundConfig = false;
-
-		for(int i = 0; i < args.length; i++)
-		{
-			if(args[i].equals("--config"))
-			{
-				foundConfig = true;
-
-				continue;
-			}
-
-			if(foundConfig)
-			{
-				return new File(args[i]);
-			}
-		}
-
-		return null;
-	}
-
-	public static boolean isAuth(String[] args)
-	{
-		for(int i = 0; i < args.length; i++)
-		{
-			if(args[i].equals("--auth"))
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	public static void setLookAndFeel()
 	{
 		try
 		{
-			//WebLookAndFeel.install();
+			WebLookAndFeel.install();
 			String lookAndFeel = UIManager.getSystemLookAndFeelClassName();
 
-			//UIManager.setLookAndFeel("com.alee.laf.WebLookAndFeel");
+			UIManager.setLookAndFeel("com.alee.laf.WebLookAndFeel");
 			//UIManager.setLookAndFeel(lookAndFeel);
 		}
 		catch(Exception e)

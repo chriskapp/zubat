@@ -32,11 +32,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
+
+import com.k42b3.neodym.ServiceItem;
 
 /**
  * Configuration
@@ -148,7 +149,7 @@ public class Configuration
 		}
 		else
 		{
-			throw new Exception("baseUrl in config not set");
+			throw new Exception("baseUrl not set in config");
 		}
 		
 		if(consumerKeyElement != null)
@@ -157,7 +158,7 @@ public class Configuration
 		}
 		else
 		{
-			throw new Exception("consumerKey in config not set");
+			throw new Exception("consumerKey not set in config");
 		}
 		
 		if(consumerSecretElement != null)
@@ -166,7 +167,7 @@ public class Configuration
 		}
 		else
 		{
-			throw new Exception("consumerSecret in config not set");
+			throw new Exception("consumerSecret not set in config");
 		}
 
 		if(tokenElement != null)
@@ -203,28 +204,177 @@ public class Configuration
 		}
 	}
 
+	public static ArrayList<String> getFieldsForService(ServiceItem item)
+	{
+		ArrayList<String> types = item.getTypes();
+
+		for(int i = 0; i < types.size(); i++)
+		{
+			if(Configuration.getInstance().getServices().containsKey(types.get(i)))
+			{
+				return Configuration.getInstance().getServices().get(types.get(i));
+			}
+		}
+		
+		return null;
+	}
+
 	public static HashMap<String, ArrayList<String>> getServices(Document doc)
 	{
 		HashMap<String, ArrayList<String>> services = new HashMap<String, ArrayList<String>>();
-		NodeList serviceList = doc.getElementsByTagName("service");
+		ArrayList<String> items;
 
-		for(int i = 0; i < serviceList.getLength(); i++)
-		{
-			Element itemElement = (Element) serviceList.item(i);
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("parentId");
+		items.add("serviceType");
+		items.add("path");
+		items.add("title");
+		items.add("template");
+		items.add("serviceName");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/content/page", items);
 
-			String type = itemElement.getAttribute("type");
-			ArrayList<String> items = new ArrayList<String>();
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("name");
+		items.add("title");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/content/gadget", items);
 
-			NodeList serviceItems = itemElement.getElementsByTagName("item");
-
-			for(int j = 0; j < serviceItems.getLength(); j++)
-			{
-				items.add(serviceItems.item(j).getTextContent());
-			}
-
-			services.put(type, items);
-		}
-
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("name");
+		items.add("mimeType");
+		items.add("size");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/media", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("name");
+		items.add("email");
+		items.add("countryTitle");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/user/account", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("title");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/user/group", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("authorName");
+		items.add("verb");
+		items.add("summary");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/user/activity", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("name");
+		items.add("source");
+		items.add("license");
+		items.add("version");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/core/service", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("name");
+		items.add("type");
+		items.add("class");
+		items.add("value");
+		services.put("http://ns.amun-project.org/2011/amun/service/core/registry", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("name");
+		items.add("from");
+		items.add("subject");
+		services.put("http://ns.amun-project.org/2011/amun/service/mail", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("status");
+		items.add("name");
+		items.add("email");
+		items.add("url");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/oauth", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("title");
+		items.add("code");
+		items.add("longitude");
+		items.add("latitude");
+		services.put("http://ns.amun-project.org/2011/amun/service/country", items);
+		
+		items = new ArrayList<String>();
+		items.add("group");
+		items.add("key");
+		items.add("value");
+		services.put("http://ns.amun-project.org/2011/amun/service/phpinfo", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("authorName");
+		items.add("pageTitle");
+		items.add("text");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/comment", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("pageTitle");
+		items.add("contentType");
+		items.add("content");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/file", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("authorName");
+		items.add("pageTitle");
+		items.add("title");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/news", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("authorName");
+		items.add("pageTitle");
+		items.add("content");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/page", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("authorName");
+		items.add("pageTitle");
+		items.add("content");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/php", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("authorName");
+		items.add("pageTitle");
+		items.add("mediaName");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/pipe", items);
+		
+		items = new ArrayList<String>();
+		items.add("id");
+		items.add("authorName");
+		items.add("pageTitle");
+		items.add("href");
+		items.add("date");
+		services.put("http://ns.amun-project.org/2011/amun/service/redirect", items);
+		
 		return services;
 	}
 

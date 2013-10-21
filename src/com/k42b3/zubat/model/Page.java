@@ -32,12 +32,18 @@ package com.k42b3.zubat.model;
 public class Page
 {
 	protected int id;
-	protected String globalId;
-	protected int serviceId;
 	protected String title;
 	protected String path;
 	protected String serviceType;
 	
+	public Page(int id, String title, String path, String serviceType)
+	{
+		this.id = id;
+		this.title = title;
+		this.path = path;
+		this.serviceType = serviceType;
+	}
+
 	public int getId()
 	{
 		return id;
@@ -46,26 +52,6 @@ public class Page
 	public void setId(int id)
 	{
 		this.id = id;
-	}
-	
-	public String getGlobalId()
-	{
-		return globalId;
-	}
-	
-	public void setGlobalId(String globalId)
-	{
-		this.globalId = globalId;
-	}
-	
-	public int getServiceId()
-	{
-		return serviceId;
-	}
-	
-	public void setServiceId(int serviceId)
-	{
-		this.serviceId = serviceId;
 	}
 	
 	public String getTitle()
@@ -96,5 +82,10 @@ public class Page
 	public void setServiceType(String serviceType)
 	{
 		this.serviceType = serviceType;
+	}
+	
+	public String toString()
+	{
+		return title;
 	}
 }

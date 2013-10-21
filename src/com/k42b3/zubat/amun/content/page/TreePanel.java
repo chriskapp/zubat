@@ -48,8 +48,8 @@ import org.w3c.dom.NodeList;
 
 import com.k42b3.neodym.Http;
 import com.k42b3.neodym.ServiceItem;
-import com.k42b3.zubat.PageItem;
 import com.k42b3.zubat.Zubat;
+import com.k42b3.zubat.model.Page;
 
 /**
  * TreePanel
@@ -72,22 +72,19 @@ public class TreePanel extends JPanel
 
 	public TreePanel()
 	{
+		super(new BorderLayout());
+		
 		this.page = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/page");
+		this.model = new DefaultTreeModel(new DefaultMutableTreeNode());
 
-		DefaultMutableTreeNode node;
-		try
-		{
-			node = this.loadTree();
-		}
-		catch(Exception e)
-		{
-			node = new DefaultMutableTreeNode();
-		}
-
-		this.model = new DefaultTreeModel(node);
-		this.buildComponent();
+		this.add(this.buildTree(), BorderLayout.CENTER);
 	}
 
+	public JTree getTree()
+	{
+		return tree;
+	}
+	
 	public void reload()
 	{
 		try
@@ -96,15 +93,10 @@ public class TreePanel extends JPanel
 		}
 		catch(Exception e)
 		{
+			Zubat.handleException(e);
 		}
 	}
 	
-	private void buildComponent()
-	{
-		this.setLayout(new BorderLayout());
-		this.add(this.buildTree(), BorderLayout.CENTER);
-	}
-
 	private Component buildTree()
 	{
 		tree = new JTree(model);
@@ -143,11 +135,11 @@ public class TreePanel extends JPanel
 	{
 		DefaultMutableTreeNode treeNode;
 		NodeList childs = node.getChildNodes();
-		PageItem item = PageItem.parsePage(node);
+		Page page = parsePage(node);
 
-		if(item != null)
+		if(page != null)
 		{
-			treeNode = new DefaultMutableTreeNode(item);
+			treeNode = new DefaultMutableTreeNode(page);
 
 			// parse children
 			for(int i = 0; i < childs.getLength(); i++)
@@ -175,6 +167,52 @@ public class TreePanel extends JPanel
 			return null;
 		}
 	}
+
+	private Page parsePage(Node node)
+	{
+		NodeList childs = node.getChildNodes();
+		int id = 0;
+		String title = null;
+		String path = null;
+		String type = null;
+
+		for(int i = 0; i < childs.getLength(); i++)
+		{
+			if(childs.item(i).getNodeType() != Node.ELEMENT_NODE)
+			{
+				continue;
+			}
+
+			if(childs.item(i).getNodeName().equals("id"))
+			{
+				id = Integer.parseInt(childs.item(i).getTextContent());
+			}
+
+			if(childs.item(i).getNodeName().equals("path"))
+			{
+				path = childs.item(i).getTextContent();
+			}
+
+			if(childs.item(i).getNodeName().equals("title"))
+			{
+				title = childs.item(i).getTextContent();
+			}
+
+			if(childs.item(i).getNodeName().equals("type"))
+			{
+				type = childs.item(i).getTextContent();
+			}
+		}
+
+		if(id > 0 && title != null && path != null && type != null)
+		{
+			return new Page(id, title, path, type);			
+		}
+		else
+		{
+			return null;
+		}
+    }
 
 	private void moveNode(int id, int sort) throws Exception
 	{
@@ -255,8 +293,8 @@ public class TreePanel extends JPanel
 					DefaultMutableTreeNode src = (DefaultMutableTreeNode) srcData;
 					DefaultMutableTreeNode dest = (DefaultMutableTreeNode) path.getLastPathComponent();
 
-					PageItem srcItem = (PageItem) src.getUserObject();
-					PageItem destItem = (PageItem) dest.getUserObject();
+					Page srcItem = (Page) src.getUserObject();
+					Page destItem = (Page) dest.getUserObject();
 
 					// move node
 					if(dest.isLeaf())
@@ -338,7 +376,7 @@ public class TreePanel extends JPanel
 				DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
 
 				// we can only move under the root
-				if(((PageItem) node.getUserObject()).getId() > 1)
+				if(((Page) node.getUserObject()).getId() > 1)
 				{
 					return new PageTransferable(node);
 				}

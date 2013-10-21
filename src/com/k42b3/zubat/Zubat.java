@@ -24,10 +24,14 @@ package com.k42b3.zubat;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 
 import com.k42b3.neodym.Http;
 import com.k42b3.neodym.ServiceItem;
@@ -36,6 +40,10 @@ import com.k42b3.neodym.TrafficItem;
 import com.k42b3.neodym.TrafficListenerInterface;
 import com.k42b3.neodym.oauth.Oauth;
 import com.k42b3.neodym.oauth.OauthProvider;
+import com.k42b3.zubat.container.ContainerEvent;
+import com.k42b3.zubat.container.ContainerEventListener;
+import com.k42b3.zubat.container.ContainerRequestLoadEvent;
+import com.k42b3.zubat.container.ServiceAbstract;
 
 /**
  * Zubat
@@ -48,7 +56,8 @@ public class Zubat extends JFrame
 {
 	private static final long serialVersionUID = 1L;
 
-	public static String version = "0.1.0 beta";
+	public static String version = "1.0.0";
+	public static boolean debugMode;
 
 	private static Http http;
 	private static Account account;
@@ -56,12 +65,13 @@ public class Zubat extends JFrame
 	
 	protected MenuPanel menuPanel;
 	protected ContainerPanel containerPanel;
+
 	protected TrafficPanel trafficPanel;
 	protected TrafficTableModel trafficTm;
 
 	protected Logger logger = Logger.getLogger("com.k42b3.zubat");
 
-	public Zubat()
+	public Zubat(boolean debugMode)
 	{
 		this.setTitle("zubat (version: " + Zubat.version + ")");
 		this.setLocation(100, 100);
@@ -70,19 +80,11 @@ public class Zubat extends JFrame
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLayout(new BorderLayout());
 
+		Zubat.debugMode = debugMode;
+
 		try
 		{
-			trafficTm = new TrafficTableModel();
-
-			// http
-			http = new Http(new TrafficListenerInterface(){
-
-				public void handleRequest(TrafficItem item)
-				{
-					trafficTm.addTraffic(item);
-				}
-
-			});
+			this.doInitialize();
 
 			// do authentication
 			this.doAuthentication();
@@ -102,13 +104,14 @@ public class Zubat extends JFrame
 			this.add(containerPanel, BorderLayout.CENTER);
 
 			// traffic
-			/*
-			trafficPanel = new TrafficPanel(trafficTm);
-			trafficPanel.setPreferredSize(new Dimension(600, 200));
-			trafficPanel.setBorder(new EmptyBorder(6, 0, 0, 0));
+			if(debugMode)
+			{
+				trafficPanel = new TrafficPanel(trafficTm);
+				trafficPanel.setPreferredSize(new Dimension(600, 200));
+				trafficPanel.setBorder(new EmptyBorder(6, 0, 0, 0));
 
-			this.add(trafficPanel, BorderLayout.SOUTH);
-			*/
+				this.add(trafficPanel, BorderLayout.SOUTH);
+			}
 
 			if(http.getOauth().isAuthed())
 			{
@@ -130,7 +133,40 @@ public class Zubat extends JFrame
 		}
 		catch(Exception e)
 		{
+			JPanel panel = new JPanel(new FlowLayout());
+			panel.add(new JLabel(e.getMessage()));
+			
+			this.add(panel, BorderLayout.CENTER);
+
 			Zubat.handleException(e);
+		}
+	}
+
+	public Zubat()
+	{
+		this(false);
+	}
+
+	private void doInitialize()
+	{
+		if(debugMode)
+		{
+			// traffic model
+			trafficTm = new TrafficTableModel();
+			
+			// http
+			http = new Http(new TrafficListenerInterface(){
+
+				public void handleRequest(TrafficItem item)
+				{
+					trafficTm.addTraffic(item);
+				}
+
+			});
+		}
+		else
+		{
+			http = new Http();
 		}
 	}
 
@@ -178,25 +214,11 @@ public class Zubat extends JFrame
 	{
 		try
 		{
-			// load default fields
-			ArrayList<String> types = item.getTypes();
-			ArrayList<String> fields = new ArrayList<String>();
-
-			for(int i = 0; i < types.size(); i++)
-			{
-				if(Configuration.getInstance().getServices().containsKey(types.get(i)))
-				{
-					ArrayList<String> selectedFields = Configuration.getInstance().getServices().get(types.get(i));
-
-					if(selectedFields.size() > 0)
-					{
-						fields = selectedFields;
-					}
-				}
-			}
+			// get fields
+			ArrayList<String> fields = Configuration.getFieldsForService(item);
 
 			// load container
-			ModuleAbstract instance;
+			ServiceAbstract module;
 			String className = getClassNameFromType(item.getTypeStartsWith("http://ns.amun-project.org/2011/amun/service/"));
 
 			// add component
@@ -204,7 +226,7 @@ public class Zubat extends JFrame
 
 			for(int i = 0; i < containerPanel.getTabCount(); i++)
 			{
-				ModuleAbstract module = (ModuleAbstract) containerPanel.getComponent(i);
+				module = (ServiceAbstract) containerPanel.getComponent(i);
 				
 				if(module.getItem().equals(item))
 				{
@@ -222,34 +244,34 @@ public class Zubat extends JFrame
 				{
 					Class<?> container = Class.forName(className);
 
-					instance = (ModuleAbstract) container.getConstructor(ServiceItem.class).newInstance(item);
+					module = (ServiceAbstract) container.getConstructor(ServiceItem.class).newInstance(item);
 				}
 				catch(ClassNotFoundException e)
 				{
-					instance = new com.k42b3.zubat.basic.Container(item);
+					module = new com.k42b3.zubat.basic.Container(item);
 				}
 
-				logger.info("Load class " + instance.getClass().getName());
+				logger.info("Load class " + module.getClass().getName());
 
 				// add tab
-				containerPanel.addTab(instance.getTitle(), instance);
+				containerPanel.addTab(module.getTitle(), module);
 				containerPanel.setSelectedIndex(containerPanel.getTabCount() - 1);
 				
 				// event handler
-				instance.addContainerListener(new ContainerEventListener() {
+				module.addContainerListener(new ContainerEventListener() {
 		
 					public void containerEvent(ContainerEvent event)
 					{
-						if(event instanceof ContainerLoadEvent)
+						if(event instanceof ContainerRequestLoadEvent)
 						{
-							loadContainer(((ContainerLoadEvent) event).getItem());
+							loadContainer(((ContainerRequestLoadEvent) event).getItem());
 						}
 					}
 
 				});
 				
 				// call onload
-				instance.onLoad(fields);
+				module.onLoad(fields);
 			}
 		}
 		catch(Exception e)
@@ -275,9 +297,12 @@ public class Zubat extends JFrame
 
 	public static void handleException(Exception e)
 	{
-		e.printStackTrace();
-
 		Logger.getLogger("com.k42b3.zubat").warning(e.getMessage());
+
+		if(debugMode)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public static String getClassNameFromType(String type, String subType) throws Exception

@@ -25,6 +25,7 @@ package com.k42b3.zubat;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.net.URI;
 
 import javax.swing.Box;
@@ -33,6 +34,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 
 import com.k42b3.neodym.ServiceItem;
@@ -71,6 +73,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Page");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -82,11 +85,12 @@ public class MenuPanel extends JMenuBar
 			
 			menu.add(menuItem);
 		}
-
+		
 		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/content/gadget");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Gadget");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -103,6 +107,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Media");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -127,6 +132,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Account");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -143,6 +149,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Group");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -159,6 +166,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Activity");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -183,6 +191,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Service");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -199,6 +208,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Registry");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -215,6 +225,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Mail");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -231,6 +242,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Oauth");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -247,6 +259,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Country");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -263,6 +276,7 @@ public class MenuPanel extends JMenuBar
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Phpinfo");
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, ActionEvent.CTRL_MASK));
 			menuItem.addActionListener(new ActionListener(){
 
 				public void actionPerformed(ActionEvent e)
@@ -275,30 +289,6 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 		
-		
-		return menu;
-	}
-	
-	protected JMenu buildServiceMenu()
-	{
-		JMenu menu = new JMenu("Service");
-		ServiceItem item;
-		
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/user/account");
-		if(item != null)
-		{
-			JMenuItem menuItem = new JMenuItem("Account");
-			menuItem.addActionListener(new ActionListener(){
-
-				public void actionPerformed(ActionEvent e)
-				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/user/account"));
-				}
-
-	        });
-			
-			menu.add(menuItem);
-		}
 		
 		return menu;
 	}
@@ -355,11 +345,11 @@ public class MenuPanel extends JMenuBar
 
 				out.append("Version: zubat (version: " + Zubat.version + ")\n");
 				out.append("Author: Christoph \"k42b3\" Kappestein" + "\n");
-				out.append("Website: http://code.google.com/p/delta-quadrant" + "\n");
+				out.append("Website: https://github.com/k42b3/zubat" + "\n");
 				out.append("License: GPLv3 <http://www.gnu.org/licenses/gpl-3.0.html>" + "\n");
 				out.append("\n");
-				out.append("An java application to access the API of Amun (amun.phpsx.org). It is" + "\n");
-				out.append("used to debug and control a website based on Amun. This is the reference" + "\n");
+				out.append("An java application to access the API of Amun (http://amun-project.org)." + "\n");
+				out.append("It is used to debug and control a website based on Amun. This is the reference" + "\n");
 				out.append("implementation howto access the API so feel free to hack and extend." + "\n");
 
 				JOptionPane.showMessageDialog(null, out, "About", JOptionPane.INFORMATION_MESSAGE);
