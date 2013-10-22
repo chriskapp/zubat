@@ -20,14 +20,12 @@
  * along with zubat. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.k42b3.zubat.amun.page;
+package com.k42b3.zubat.amun.php;
 
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-
-import javafx.application.Platform;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -37,7 +35,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
@@ -60,35 +57,24 @@ public class EditorPanel extends WebviewEditorPanelAbstract
 	{
 		super(page);
 	}
-
+	
 	public JComponent getEditorComponent() throws Exception
 	{
 		textarea = new RSyntaxTextArea();
 		textarea.setText(form.getRequestFields().get("content").getValue());
-		textarea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
+		textarea.setText("<?php\n" + textarea.getText());
+		textarea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PHP);
 
 		return new RTextScrollPane(textarea);
 	}
-
+	
 	protected JMenuBar getMenuBar()
 	{
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu = new JMenu("File");
-		
-		JMenuItem itemPreview = new JMenuItem("Preview");
-		itemPreview.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
-		itemPreview.addActionListener(new ActionListener() {
-			
-			public void actionPerformed(ActionEvent e)
-			{
-				preview();
-			}
-			
-		});
-		menu.add(itemPreview);
 
-		JMenuItem itemPublish= new JMenuItem("Publish");
-		itemPublish.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK));
+		JMenuItem itemPublish = new JMenuItem("Save");
+		itemPublish.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 		itemPublish.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e)
@@ -107,18 +93,8 @@ public class EditorPanel extends WebviewEditorPanelAbstract
 	protected JComponent getBottomBar()
 	{
 		JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		
-		JButton btnPreview = new JButton("Preview");
-		btnPreview.addActionListener(new ActionListener(){
 
-			public void actionPerformed(ActionEvent e)
-			{
-				preview();
-			}
-
-		});
-
-		JButton btnPublish = new JButton("Publish");
+		JButton btnPublish = new JButton("Save");
 		btnPublish.addActionListener(new ActionListener(){
 
 			public void actionPerformed(ActionEvent e)
@@ -128,7 +104,6 @@ public class EditorPanel extends WebviewEditorPanelAbstract
 
 		});
 
-		buttons.add(btnPreview);
 		buttons.add(btnPublish);
 		
 		return buttons;
@@ -136,22 +111,8 @@ public class EditorPanel extends WebviewEditorPanelAbstract
 
 	protected void setRequestFields()
 	{
-		form.getRequestFields().get("content").setValue(textarea.getText());
-	}
+		String content = textarea.getText().substring(textarea.getText().indexOf("\n"));
 
-	protected void preview()
-	{
-		Platform.runLater(new Runnable(){
-
-			public void run() 
-			{
-				String js = "";
-				js+= "var html = '" + StringEscapeUtils.escapeEcmaScript(textarea.getText()) + "';";
-				js+= "$('." + (recordId > 0 ? "amun-service-page-content" : "amun-service-page") + "').html(html);";
-
-				webengine.executeScript(js);
-			}
-
-		});
+		form.getRequestFields().get("content").setValue(content);
 	}
 }
