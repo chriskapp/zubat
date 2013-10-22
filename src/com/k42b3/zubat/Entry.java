@@ -51,9 +51,8 @@ public class Entry
 			// parse args
 			Options options = new Options();
 			options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("path to the configuration xml").create("config"));
-			options.addOption("auth", false, "starts the authentication process");
 			options.addOption("debug", false, "enables debug mode");
-			
+
 			CommandLineParser parser = new GnuParser();
 			CommandLine line = parser.parse(options, args);
 
@@ -69,10 +68,9 @@ public class Entry
 				configFile = new File("zubat.conf.xml");
 			}
 
-			Configuration.initInstance(configFile);
+			Configuration config = Configuration.initInstance(configFile);
 
-			// start
-			if(line.hasOption("auth"))
+			if(!config.hasToken())
 			{
 				SwingUtilities.invokeLater(new Runnable() {
 
@@ -119,6 +117,7 @@ public class Entry
 		}
 		catch(Exception e)
 		{
+			Zubat.handleException(e);
 		}
 	}
 }
