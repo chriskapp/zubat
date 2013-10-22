@@ -264,7 +264,7 @@ public class Container extends ServiceAbstract
 			// close existing frame
 			if(editorFrame != null)
 			{
-				editorFrame.setVisible(true);
+				editorFrame.setVisible(false);
 			}
 
 			// frame
