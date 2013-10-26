@@ -22,7 +22,7 @@
 
 package com.k42b3.zubat.form;
 
-import javax.swing.JTextArea;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 /**
  * Textarea
@@ -31,7 +31,7 @@ import javax.swing.JTextArea;
  * @license http://www.gnu.org/licenses/gpl.html GPLv3
  * @link    https://github.com/k42b3/zubat
  */
-public class Textarea extends JTextArea implements FormElementInterface
+public class Textarea extends RSyntaxTextArea implements FormElementInterface
 {
 	private static final long serialVersionUID = 1L;
 

@@ -30,7 +30,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -42,8 +41,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 
-import com.k42b3.neodym.Http;
+import com.k42b3.neodym.Service;
+import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.zubat.Zubat;
 
 /**
@@ -65,7 +67,8 @@ public class SearchPanel extends JFrame
 
 	protected JTable table;
 	protected ViewTableModel tm;
-
+	protected ButtonsPanel buttons;
+	
 	protected JButton btnSearch;
 	protected JButton btnCancel;
 
@@ -82,7 +85,14 @@ public class SearchPanel extends JFrame
 
 		this.setLayout(new BorderLayout());
 
-		tm = new ViewTableModel(item.getSrc());
+		ArrayList<String> fields = new ArrayList<String>();
+		fields.add(item.getValueField());
+		fields.add(item.getLabelField());
+
+		Service service = Zubat.getServices().getServiceByUri(item.getSrc());
+		Endpoint api = new Endpoint(Zubat.getHttp(), service);
+
+		tm = new ViewTableModel(api, fields);
 
 		this.buildComponent();
 	}
@@ -101,7 +111,7 @@ public class SearchPanel extends JFrame
 		JPanel searchPanel = new JPanel();
 		searchPanel.setLayout(new FlowLayout());
 
-		cboField = new JComboBox<String>(new DefaultComboBoxModel(tm.getSupportedFields().toArray()));
+		cboField = new JComboBox<String>(new DefaultComboBoxModel(tm.getFields().toArray()));
 		cboField.setPreferredSize(new Dimension(125, 22));
 
 		String[] operators = {"contains", "equals", "startsWith", "present"};
@@ -110,7 +120,26 @@ public class SearchPanel extends JFrame
 
 		txtSearch = new JTextField();
 		txtSearch.setPreferredSize(new Dimension(200, 22));
+		txtSearch.addActionListener(new ActionListener() {
 
+			public void actionPerformed(ActionEvent e) 
+			{
+				try
+				{
+					String filterBy = cboField.getSelectedItem().toString();
+					String filterOp = cboOperator.getSelectedItem().toString();
+					String filterValue = txtSearch.getText();
+
+					tm.loadData(filterBy, filterOp, filterValue);
+				}
+				catch(Exception ex)
+				{
+					Zubat.handleException(ex);
+				}
+			}
+
+		});
+		
 		searchPanel.add(cboField);
 		searchPanel.add(cboOperator);
 		searchPanel.add(txtSearch);
@@ -120,18 +149,9 @@ public class SearchPanel extends JFrame
 
 	private Component buildTable() throws Exception
 	{
-		ArrayList<String> fields = new ArrayList<String>();
-
-		fields.add(item.getValueField());
-		fields.add(item.getLabelField());
-
-		String urlFilter = Http.appendQuery(item.getSrc(), "count=64");
-
-		tm.setUrl(urlFilter);
-		tm.loadData(fields);
+		tm.loadData(0, 32);
 
 		table = new JTable(tm);
-
 		table.addMouseListener(new MouseListener() {
 
 			public void mouseReleased(MouseEvent e) 
@@ -172,52 +192,18 @@ public class SearchPanel extends JFrame
 
 	private Component buildButtons()
 	{
-		JPanel buttons = new JPanel();
+		buttons = new ButtonsPanel(tm);
+		buttons.validate();
 
-		this.btnSearch = new JButton("Search");
-		this.btnCancel = new JButton("Cancel");
+		tm.addTableModelListener(new TableModelListener() {
 
-		this.btnSearch.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) 
+			public void tableChanged(TableModelEvent e) 
 			{
-				try
-				{
-					ArrayList<String> fields = new ArrayList<String>();
-					String operator = cboOperator.getSelectedItem().toString();
-					String selectedField = cboField.getSelectedItem().toString();
-					String value = URLEncoder.encode(txtSearch.getText(), "UTF-8");
-
-					fields.add(item.getValueField());
-					fields.add(item.getLabelField());
-
-					String urlFilter = Http.appendQuery(item.getSrc(), "filterBy=" + selectedField + "&filterOp=" + operator + "&filterValue=" + value + "&count=64");
-
-					tm.setUrl(urlFilter);
-					tm.loadData(fields);
-				}
-				catch(Exception ex)
-				{
-					Zubat.handleException(ex);
-				}
+				buttons.validate();
 			}
 
 		});
 
-		this.btnCancel.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e) 
-			{
-				setVisible(false);
-			}
-
-		});
-
-		buttons.setLayout(new FlowLayout(FlowLayout.LEADING));
-
-		buttons.add(this.btnSearch);
-		buttons.add(this.btnCancel);
-		
 		return buttons;
 	}
 }

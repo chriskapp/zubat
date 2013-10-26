@@ -51,15 +51,10 @@ public class TrafficDetail extends JFrame
 	public TrafficDetail()
 	{
 		this.setTitle("zubat (version: " + Zubat.version + ")");
-
 		this.setLocation(100, 100);
-
 		this.setSize(600, 400);
-
 		this.setMinimumSize(this.getSize());
-
 		this.setLayout(new BorderLayout());
-
 
 		tabPane = new JTabbedPane();
 
@@ -68,7 +63,6 @@ public class TrafficDetail extends JFrame
 
 		tabPane.addTab("Request", new JScrollPane(txtRequest));
 		tabPane.addTab("Response", new JScrollPane(txtResponse));
-
 
 		this.add(tabPane, BorderLayout.CENTER);
 

@@ -34,10 +34,11 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import com.k42b3.neodym.Http;
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
 import com.k42b3.neodym.Services;
 import com.k42b3.neodym.TrafficItem;
 import com.k42b3.neodym.TrafficListenerInterface;
+import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.neodym.oauth.Oauth;
 import com.k42b3.neodym.oauth.OauthProvider;
 import com.k42b3.zubat.container.ContainerEvent;
@@ -61,7 +62,7 @@ public class Zubat extends JFrame
 
 	private static Http http;
 	private static Account account;
-	private static Services availableServices;
+	private static Services services;
 	
 	protected MenuPanel menuPanel;
 	protected ContainerPanel containerPanel;
@@ -115,7 +116,7 @@ public class Zubat extends JFrame
 
 			if(http.getOauth().isAuthed())
 			{
-				ServiceItem item = availableServices.getItem("http://ns.amun-project.org/2011/amun/service/content/page");
+				Service item = services.getService("http://ns.amun-project.org/2011/amun/service/content/page");
 
 				if(item != null)
 				{
@@ -172,7 +173,7 @@ public class Zubat extends JFrame
 
 	private void fetchAccount() throws Exception
 	{
-		ServiceItem item = getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/my/verifyCredentials");
+		Service item = getServices().getService("http://ns.amun-project.org/2011/amun/service/my/verifyCredentials");
 
 		if(item != null)
 		{
@@ -187,13 +188,13 @@ public class Zubat extends JFrame
 	private void doAuthentication() throws Exception
 	{
 		// fetch services
-		availableServices = new Services(http, Configuration.getInstance().getBaseUrl());
-		availableServices.discover();
+		services = new Services(http, Configuration.getInstance().getBaseUrl());
+		services.discover();
 
 		// authentication
-		String requestUrl = availableServices.getItem("http://oauth.net/core/1.0/endpoint/request").getUri();
-		String authorizationUrl = availableServices.getItem("http://oauth.net/core/1.0/endpoint/authorize").getUri();
-		String accessUrl = availableServices.getItem("http://oauth.net/core/1.0/endpoint/access").getUri();
+		String requestUrl = services.getService("http://oauth.net/core/1.0/endpoint/request").getUri();
+		String authorizationUrl = services.getService("http://oauth.net/core/1.0/endpoint/authorize").getUri();
+		String accessUrl = services.getService("http://oauth.net/core/1.0/endpoint/access").getUri();
 
 		OauthProvider provider = new OauthProvider(requestUrl, authorizationUrl, accessUrl, Configuration.getInstance().getConsumerKey(), Configuration.getInstance().getConsumerSecret());
 		Oauth oauth = new Oauth(http, provider);
@@ -204,22 +205,22 @@ public class Zubat extends JFrame
 		}
 		else
 		{
-			throw new Exception("No token set use --auth to obtain a token and token secret");
+			throw new Exception("No token set");
 		}
 
 		http.setOauth(oauth);
 	}
 
-	public void loadContainer(ServiceItem item)
+	public void loadContainer(Service service)
 	{
 		try
 		{
 			// get fields
-			ArrayList<String> fields = Configuration.getFieldsForService(item);
+			ArrayList<String> fields = Configuration.getFieldsForService(service);
 
 			// load container
 			ServiceAbstract module;
-			String className = getClassNameFromType(item.getTypeStartsWith("http://ns.amun-project.org/2011/amun/service/"));
+			String className = getClassNameFromType(service.getTypeStartsWith("http://ns.amun-project.org/2011/amun/service/"));
 
 			// add component
 			boolean found = false;
@@ -228,7 +229,7 @@ public class Zubat extends JFrame
 			{
 				module = (ServiceAbstract) containerPanel.getComponent(i);
 				
-				if(module.getItem().equals(item))
+				if(module.getApi().getService().equals(service))
 				{
 					containerPanel.setSelectedIndex(i);
 
@@ -240,15 +241,17 @@ public class Zubat extends JFrame
 			if(!found)
 			{
 				// load class
+				Endpoint api = new Endpoint(http, service);
+
 				try
 				{
 					Class<?> container = Class.forName(className);
 
-					module = (ServiceAbstract) container.getConstructor(ServiceItem.class).newInstance(item);
+					module = (ServiceAbstract) container.getConstructor(Endpoint.class).newInstance(api);
 				}
 				catch(ClassNotFoundException e)
 				{
-					module = new com.k42b3.zubat.basic.Container(item);
+					module = new com.k42b3.zubat.basic.Container(api);
 				}
 
 				logger.info("Load class " + module.getClass().getName());
@@ -290,9 +293,9 @@ public class Zubat extends JFrame
 		return account;
 	}
 
-	public static Services getAvailableServices()
+	public static Services getServices()
 	{
-		return availableServices;
+		return services;
 	}
 
 	public static void handleException(Exception e)

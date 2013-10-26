@@ -22,7 +22,7 @@
 
 package com.k42b3.zubat.basic;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
@@ -47,15 +47,15 @@ public class ColumnTableModel extends AbstractTableModel
 	{
 		this.tm = tm;
 
-		rows = new Object[tm.getSupportedFields().size()][2];
+		rows = new Object[tm.getFields().size()][2];
 
 		loadData();
 	}
 
 	private void loadData()
 	{
-		ArrayList<String> supportedFields = tm.getSupportedFields();
-		ArrayList<String> fields = tm.getFields();
+		List<String> supportedFields = tm.getFields();
+		List<String> fields = tm.getFields();
 
 		for(int i = 0; i < supportedFields.size(); i++)
 		{

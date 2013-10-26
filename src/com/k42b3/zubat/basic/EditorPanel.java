@@ -26,7 +26,8 @@ import java.util.ArrayList;
 
 import javax.swing.JComponent;
 
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
+import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.zubat.Configuration;
 import com.k42b3.zubat.Zubat;
 import com.k42b3.zubat.container.ContainerEvent;
@@ -45,30 +46,20 @@ import com.k42b3.zubat.model.Page;
  */
 public class EditorPanel extends EditorAbstract
 {
-	protected ServiceItem item;
+	protected Endpoint api;
 	protected com.k42b3.zubat.basic.Container container;
 	
 	public EditorPanel(Page page) throws Exception
 	{
 		super(page);
+
+		// container
+		container = new com.k42b3.zubat.basic.Container(page.getApi());
 		
-		// get service
-		item = Zubat.getAvailableServices().getItem(page.getServiceType());
+		// event handler
+		addContainerListener(new ContainerSelfListener());
 
-		if(item != null)
-		{
-			// container
-			container = new com.k42b3.zubat.basic.Container(item);
-			
-			// event handler
-			addContainerListener(new ContainerSelfListener());
-
-			container.addContainerListener(new ContainerChildListener());
-		}
-		else
-		{
-			throw new Exception("Service " + page.getServiceType() + " not found");
-		}
+		container.addContainerListener(new ContainerChildListener());
 	}
 
 	public JComponent getComponent() throws Exception
@@ -82,9 +73,16 @@ public class EditorPanel extends EditorAbstract
 		{
 			if(event instanceof ContainerLoadFinishedEvent)
 			{
-				ArrayList<String> fields = Configuration.getFieldsForService(item);
+				try
+				{
+					ArrayList<String> fields = Configuration.getFieldsForService(page.getApi().getService());
 
-				container.onLoad(fields);
+					container.onLoad(fields);
+				}
+				catch(Exception e)
+				{
+					Zubat.handleException(e);
+				}
 			}
 		}
 	}

@@ -22,7 +22,7 @@
 
 package com.k42b3.zubat.container;
 
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
 
 /**
  * ContainerRequestLoadEvent
@@ -33,14 +33,14 @@ import com.k42b3.neodym.ServiceItem;
  */
 public class ContainerRequestLoadEvent implements ContainerEvent
 {
-	protected ServiceItem item;
+	protected Service item;
 	
-	public ContainerRequestLoadEvent(ServiceItem item)
+	public ContainerRequestLoadEvent(Service item)
 	{
 		this.item = item;
 	}
 	
-	public ServiceItem getItem()
+	public Service getItem()
 	{
 		return item;
 	}

@@ -78,9 +78,7 @@ public class TrafficPanel extends JPanel
 					}
 
 					trafficDetailFrame.setItem(item);
-
 					trafficDetailFrame.setVisible(true);
-
 					trafficDetailFrame.toFront();
 				}
 			}

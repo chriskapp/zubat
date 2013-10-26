@@ -42,12 +42,13 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import org.apache.http.entity.StringEntity;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.k42b3.neodym.Http;
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
 import com.k42b3.zubat.Zubat;
 import com.k42b3.zubat.model.Page;
 
@@ -62,7 +63,7 @@ public class TreePanel extends JPanel
 {
 	private static final long serialVersionUID = 1L;
 
-	private ServiceItem page;
+	private Service page;
 	private DefaultTreeModel model;
 
 	private JTree tree;
@@ -74,7 +75,7 @@ public class TreePanel extends JPanel
 	{
 		super(new BorderLayout());
 		
-		this.page = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/page");
+		this.page = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/page");
 		this.model = new DefaultTreeModel(new DefaultMutableTreeNode());
 
 		this.add(this.buildTree(), BorderLayout.CENTER);
@@ -230,7 +231,7 @@ public class TreePanel extends JPanel
 			String body = "<request><id>" + id + "</id><sort>" + sort + "</sort></request>";
 
 			// request
-			Zubat.getHttp().requestXml(Http.POST, page.getUri(), header, body);
+			Zubat.getHttp().requestXml(Http.POST, page.getUri(), header, new StringEntity(body));
 
 			// reload
 			reload();
@@ -259,7 +260,7 @@ public class TreePanel extends JPanel
 			String body = "<request><id>" + id + "</id><parentId>" + parentId + "</parentId></request>";
 
 			// request
-			Zubat.getHttp().requestXml(Http.POST, page.getUri(), header, body);
+			Zubat.getHttp().requestXml(Http.POST, page.getUri(), header, new StringEntity(body));
 
 			// reload
 			reload();

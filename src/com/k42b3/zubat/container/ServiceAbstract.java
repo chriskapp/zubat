@@ -28,7 +28,8 @@ import java.awt.FlowLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
+import com.k42b3.neodym.data.Endpoint;
 
 /**
  * ServiceAbstract
@@ -39,17 +40,11 @@ import com.k42b3.neodym.ServiceItem;
  */
 abstract public class ServiceAbstract extends ModuleAbstract
 {
-	protected ServiceItem item;
+	protected Endpoint api;
 	
-	public ServiceAbstract(ServiceItem item) throws Exception
+	public ServiceAbstract(Endpoint api)
 	{
-		this.item = item;
-
-		// check whether we have an data type
-		if(item.hasType("http://ns.amun-project.org/2011/amun/data/1.0"))
-		{
-			//throw new Exception("Service is not an data type");
-		}
+		this.api = api;
 
 		// loading panel
 		JPanel panel = new JPanel(new FlowLayout());
@@ -58,8 +53,18 @@ abstract public class ServiceAbstract extends ModuleAbstract
 		this.add(panel, BorderLayout.CENTER);
 	}
 	
-	public ServiceItem getItem()
+	public Endpoint getApi()
 	{
-		return item;
+		return api;
+	}
+	
+	public boolean equals(Object o)
+	{
+		if(o instanceof ServiceAbstract)
+		{
+			return ((ServiceAbstract) o).getApi().getService().getUri().equals(getApi().getService().getUri());
+		}
+
+		return false;
 	}
 }

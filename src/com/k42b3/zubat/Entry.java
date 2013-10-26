@@ -44,6 +44,8 @@ import com.alee.laf.WebLookAndFeel;
  */
 public class Entry 
 {
+	public static boolean debugMode = false;
+
 	public static void main(String[] args)
 	{
 		try
@@ -66,6 +68,11 @@ public class Entry
 			else
 			{
 				configFile = new File("zubat.conf.xml");
+			}
+
+			if(line.hasOption("debug"))
+			{
+				debugMode = true;
 			}
 
 			Configuration config = Configuration.initInstance(configFile);
@@ -92,7 +99,7 @@ public class Entry
 					{
 						Entry.setLookAndFeel();
 
-						Zubat panel = new Zubat();
+						Zubat panel = new Zubat(debugMode);
 						panel.setVisible(true);
 					}
 

@@ -37,7 +37,7 @@ import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
 
 /**
  * Configuration
@@ -209,7 +209,7 @@ public class Configuration
 		}
 	}
 
-	public static ArrayList<String> getFieldsForService(ServiceItem item)
+	public static ArrayList<String> getFieldsForService(Service item)
 	{
 		ArrayList<String> types = item.getTypes();
 

@@ -26,6 +26,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -37,12 +38,15 @@ import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
+import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.zubat.Zubat;
 import com.k42b3.zubat.container.ContainerEvent;
 import com.k42b3.zubat.container.ContainerEventListener;
+import com.k42b3.zubat.container.ContainerExceptionEvent;
 import com.k42b3.zubat.container.ContainerLoadFinishedEvent;
 import com.k42b3.zubat.container.ContainerRequestEditorEvent;
+import com.k42b3.zubat.container.ContainerSuccessEvent;
 import com.k42b3.zubat.container.EditorAbstract;
 import com.k42b3.zubat.container.ServiceAbstract;
 import com.k42b3.zubat.model.Page;
@@ -68,9 +72,9 @@ public class Container extends ServiceAbstract
 	protected JFrame editorFrame;
 	protected int selectedId = 0;
 
-	public Container(ServiceItem item) throws Exception
+	public Container(Endpoint api) throws Exception
 	{
-		super(item);
+		super(api);
 		
 		// event handler
 		addContainerListener(new ContainerSelfListener());
@@ -78,6 +82,7 @@ public class Container extends ServiceAbstract
 
 	public String getTitle()
 	{
+		Service item = api.getService();
 		String title = item.getUri().substring(item.getUri().lastIndexOf('/') + 1);
 		
 		if(title.isEmpty())
@@ -147,17 +152,17 @@ public class Container extends ServiceAbstract
 		// worker
 		if(tp.getSelectedIndex() == DELETE && getSelectedId() > 0)
 		{
-			FormWorker worker = new FormWorker(item.getUri() + "/form?method=delete&id=" + getSelectedId(), DELETE);
+			FormWorker worker = new FormWorker(api, FormPanel.DELETE, getSelectedId(), null);
 			worker.execute();
 		}
 		else if(tp.getSelectedIndex() == UPDATE && getSelectedId() > 0)
 		{
-			FormWorker worker = new FormWorker(item.getUri() + "/form?method=update&id=" + getSelectedId(), UPDATE);
+			FormWorker worker = new FormWorker(api, FormPanel.UPDATE, getSelectedId(), null);
 			worker.execute();
 		}
 		else if(tp.getSelectedIndex() == CREATE)
 		{
-			FormWorker worker = new FormWorker(item.getUri() + "/form?method=create", CREATE);
+			FormWorker worker = new FormWorker(api, FormPanel.CREATE, 0, null);
 			worker.execute();
 		}
 		else
@@ -176,7 +181,7 @@ public class Container extends ServiceAbstract
 
 	protected JComponent getViewPanel() throws Exception
 	{
-		view = new ViewPanel(item, fields);
+		view = new ViewPanel(api, fields);
 		JTable table = view.getTable();
 		table.addMouseListener(new MouseAdapter() {
 
@@ -229,11 +234,30 @@ public class Container extends ServiceAbstract
 		return view;
 	}
 
-	protected JComponent getFormPanel(String url)
+	protected JComponent getFormPanel(Endpoint api, int type, int id, Map<String, String> params)
 	{
 		try
 		{
-			return new FormPanel(url);
+			FormPanel panel = new FormPanel(api, type, id, params);
+			panel.addContainerListener(new ContainerEventListener() {
+				
+				public void containerEvent(ContainerEvent event)
+				{
+					if(event instanceof ContainerSuccessEvent)
+					{
+						tp.setSelectedIndex(0);
+
+						setSelectedId(0);
+					}
+					else if(event instanceof ContainerExceptionEvent)
+					{
+						// exception occured
+					}
+				}
+				
+			});
+
+			return panel;
 		}
 		catch(Exception e)
 		{
@@ -309,7 +333,7 @@ public class Container extends ServiceAbstract
 				try
 				{
 					ViewTableModel tm = (ViewTableModel) view.getTable().getModel();
-					tm.loadData(fields);
+					tm.loadData();
 				}
 				catch(Exception e)
 				{
@@ -323,20 +347,25 @@ public class Container extends ServiceAbstract
 	
 	private class FormWorker extends SwingWorker<Void, Exception>
 	{
-		protected Exception lastException;
-		protected String url;
+		protected Endpoint api;
 		protected int type;
+		protected int id;
+		protected Map<String, String> params;
+
+		protected Exception lastException;
 		protected JComponent component;
 
-		public FormWorker(String url, int type)
+		public FormWorker(Endpoint api, int type, int id, Map<String, String> params)
 		{
-			this.url = url;
+			this.api = api;
 			this.type = type;
+			this.id = id;
+			this.params = params;
 		}
 
         protected Void doInBackground()
         {
-        	component = getFormPanel(url);
+        	component = getFormPanel(api, type, id, params);
 
             return null;
         }

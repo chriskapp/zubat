@@ -26,13 +26,16 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.StringWriter;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -52,6 +55,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.fife.ui.rtextarea.RTextScrollPane;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -59,9 +66,14 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.k42b3.neodym.Http;
-import com.k42b3.neodym.Message;
+import com.k42b3.neodym.data.Endpoint;
+import com.k42b3.neodym.data.Message;
+import com.k42b3.neodym.data.Record;
 import com.k42b3.zubat.Zubat;
-import com.k42b3.zubat.form.CheckboxList;
+import com.k42b3.zubat.container.ContainerEventListener;
+import com.k42b3.zubat.container.ContainerExceptionEvent;
+import com.k42b3.zubat.container.ContainerSuccessEvent;
+import com.k42b3.zubat.form.FileChooser;
 import com.k42b3.zubat.form.FormElementInterface;
 import com.k42b3.zubat.form.Input;
 import com.k42b3.zubat.form.Select;
@@ -79,27 +91,54 @@ public class FormPanel extends JPanel
 {
 	private static final long serialVersionUID = 1L;
 
-	protected String url;
+	public static final int CREATE = 0x1;
+	public static final int UPDATE = 0x2;
+	public static final int DELETE = 0x3;
+
+	protected Endpoint api;
+	protected int method;
+	protected int id;
+	protected Map<String, String> params;
 
 	protected String requestMethod;
 	protected String requestUrl;
+
 	protected LinkedHashMap<String, FormElementInterface> requestFields = new LinkedHashMap<String, FormElementInterface>();
+	protected ArrayList<ContainerEventListener> listeners = new ArrayList<ContainerEventListener>();
 
 	protected Container body;
 	protected JButton btnSend;
 
 	protected SearchPanel searchPanel;
 	protected HashMap<String, ReferenceItem> referenceFields = new HashMap<String, ReferenceItem>();
-
+	
 	protected Logger logger = Logger.getLogger("com.k42b3.zubat");
 
-	public FormPanel(String url) throws Exception
+	public FormPanel(Endpoint api, int method, int id, Map<String, String> params) throws Exception
 	{
-		this.url = url;
+		this.api = api;
+		this.method = method;
+		this.id = id;
+		this.params = params;
 
 		this.setLayout(new BorderLayout());
 
 		this.buildComponent();
+	}
+
+	public FormPanel(Endpoint api, int method, int id) throws Exception
+	{
+		this(api, method, id, null);
+	}
+
+	public FormPanel(Endpoint api, int method, Map<String, String> params) throws Exception
+	{
+		this(api, method, 0, params);
+	}
+
+	public FormPanel(Endpoint api, int method) throws Exception
+	{
+		this(api, method, 0);
 	}
 
 	public LinkedHashMap<String, FormElementInterface> getRequestFields()
@@ -107,86 +146,162 @@ public class FormPanel extends JPanel
 		return requestFields;
 	}
 	
-	public Document sendRequest() throws Exception
+	public Message sendRequest() throws Exception
 	{
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		Document doc = db.newDocument();
-		doc.setXmlStandalone(true);
-
 		Set<String> keys = requestFields.keySet();
 
-		Element root = doc.createElement("request");
-
+		boolean hasFileUpload = false;
 		for(String key : keys)
 		{
-			Element e = doc.createElement(key);
-			e.setTextContent(requestFields.get(key).getValue());
-
-			root.appendChild(e);
+			if(requestFields.get(key) instanceof FileChooser)
+			{
+				hasFileUpload = true;
+				break;
+			}
 		}
+		
+		if(!hasFileUpload)
+		{
+			Record record = new Record();
+			
+			for(String key : keys)
+			{
+				record.put(key, requestFields.get(key).getValue());
+			}
 
-		doc.appendChild(root);
+			Message message;
+			if(method == CREATE)
+			{
+				message = api.create(record);
+			}
+			else if(method == UPDATE)
+			{
+				message = api.update(record);
+			}
+			else if(method == DELETE)
+			{
+				message = api.delete(record);
+			}
+			else
+			{
+				throw new Exception("Unknown method");
+			}
 
-		// xml to string
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			if(message.hasSuccess())
+			{
+				fireContainer(new ContainerSuccessEvent());
 
-		StreamResult result = new StreamResult(new StringWriter());
-		DOMSource source = new DOMSource(doc);
-		transformer.transform(source, result);
+				JOptionPane.showMessageDialog(null, message.getText(), "Response", JOptionPane.INFORMATION_MESSAGE);
+			}
+			else
+			{
+				throw new Exception(message.getText());
+			}
 
-		String requestContent = result.getWriter().toString();
+			return message;
+		}
+		else
+		{
+			// build entity
+			MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+					
+			for(String key : keys)
+			{
+				if(requestFields.get(key) instanceof FileChooser)
+				{
+					FileChooser fc = (FileChooser) requestFields.get(key);
 
-		// send request
-		HashMap<String, String> header = new HashMap<String, String>();
+					entityBuilder.addPart(key, new FileBody(fc.getSelectedFile()));
+				}
+				else
+				{
+					entityBuilder.addTextBody(key, requestFields.get(key).getValue());
+				}
+			}
+			
+			// send request
+			Document response = Zubat.getHttp().requestXml(Http.POST, api.getService().getUri(), null, entityBuilder.build());
+			
+			// parse response
+			Message message = Message.parseMessage(response.getDocumentElement());
 
-		header.put("Content-Type", "application/xml");
-		header.put("X-HTTP-Method-Override", requestMethod);
+			if(message.hasSuccess())
+			{
+				fireContainer(new ContainerSuccessEvent());
 
-		return Zubat.getHttp().requestXml(Http.POST, requestUrl, header, requestContent);
+				JOptionPane.showMessageDialog(null, message.getText(), "Response", JOptionPane.INFORMATION_MESSAGE);
+			}
+			else
+			{
+				throw new Exception(message.getText());
+			}
+			
+			return message;
+		}
 	}
 
+	public void addContainerListener(ContainerEventListener listener)
+	{
+		listeners.add(listener);
+	}
+
+	public void fireContainer(com.k42b3.zubat.container.ContainerEvent event)
+	{
+		for(int i = 0; i < listeners.size(); i++)
+		{
+			listeners.get(i).containerEvent(event);
+		}
+	}
+	
 	protected void buildComponent() throws Exception
 	{
 		// form panel
 		body = new JPanel();
-		body.setLayout(new GridLayout(0, 1));
+		body.setLayout(new BorderLayout());
+		//body.setLayout(new GridLayout(0, 1));
 
 		// load data
+		String method = this.method == CREATE ? "create" : (this.method == UPDATE ? "update" : (this.method == DELETE ? "delete" : "create"));
+		String url = api.getService().getUri() + "/form?method=" + method;
+
+		if(id > 0)
+		{
+			url = Http.appendQuery(url, "id=" + id);
+		}
+
+		if(params != null && params.size() > 0)
+		{
+			Iterator<Entry<String, String>> it = params.entrySet().iterator();
+			
+			while(it.hasNext())
+			{
+				Entry<String, String> entry = it.next();
+
+				url = Http.appendQuery(url, entry.getKey() + "=" + URLEncoder.encode(entry.getValue(), "UTF-8"));
+			}
+		}
+
 		this.request(url);
 
 		// add panel
 		this.add(new JScrollPane(body), BorderLayout.CENTER);
 
 		// buttons
-		JPanel buttons = new JPanel();
+		JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEADING));
 
 		this.btnSend = new JButton("Send");
-
 		this.btnSend.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent e) 
 			{
 				try
 				{
-					Document doc = sendRequest();
-					Element rootElement = (Element) doc.getDocumentElement();
-
-					// get message
-					Message msg = Message.parseMessage(rootElement);
-
-					if(msg.hasSuccess())
-					{
-						JOptionPane.showMessageDialog(null, msg.getText(), "Response", JOptionPane.INFORMATION_MESSAGE);
-					}
-					else
-					{
-						throw new Exception(msg.getText());
-					}
+					sendRequest();
 				}
 				catch(Exception ex)
 				{
+					fireContainer(new ContainerExceptionEvent(ex));
+					
 					JOptionPane.showMessageDialog(null, ex.getMessage(), "Response", JOptionPane.ERROR_MESSAGE);
 
 					Zubat.handleException(ex);
@@ -194,8 +309,6 @@ public class FormPanel extends JPanel
 			}
 
 		});
-
-		buttons.setLayout(new FlowLayout(FlowLayout.LEADING));
 
 		buttons.add(this.btnSend);
 
@@ -222,18 +335,18 @@ public class FormPanel extends JPanel
 				errorPanel.setLayout(new FlowLayout());
 				errorPanel.add(new JLabel(msg.getText()));
 
-				body.add(errorPanel);
+				body.add(errorPanel, BorderLayout.CENTER);
 			}
 			else
 			{
-				body.add(this.parse(rootElement));
+				body.add(this.parse(rootElement), BorderLayout.CENTER);
 			}
 		}
 		catch(SAXException e)
 		{
 			JLabel error = new JLabel(e.getMessage());
 
-			body.add(error);
+			body.add(error, BorderLayout.CENTER);
 		}
 	}
 
@@ -272,13 +385,15 @@ public class FormPanel extends JPanel
 			{
 				return parseReference(node);
 			}
+			/*
 			else if(nodeName.equals("checkboxlist"))
 			{
 				return parseCheckboxList(node);
 			}
+			*/
 			else if(nodeName.equals("captcha"))
 			{
-				return parseCheckboxList(node);
+				return parseCaptcha(node);
 			}
 			else
 			{
@@ -325,7 +440,7 @@ public class FormPanel extends JPanel
 			panel.add(con, BorderLayout.CENTER);
 		}
 
-		return panel;
+		return con;
 	}
 
 	protected Container parseInput(Node node)
@@ -337,29 +452,40 @@ public class FormPanel extends JPanel
 		Node nodeType = this.getChildNode(node, "type");
 
 		JPanel item = new JPanel();
-		item.setLayout(new FlowLayout());
+		item.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 		JLabel label = new JLabel(nodeLabel.getTextContent());
 		label.setPreferredSize(new Dimension(100, 22));
 
-		Input input = new Input();
-		input.setPreferredSize(new Dimension(300, 22));
-		
-		if(nodeValue != null)
+		if(nodeType != null && nodeType.getTextContent().equals("file"))
 		{
-			input.setText(nodeValue.getTextContent());
-		}
+			FileChooser fileSelect = new FileChooser();
 
-		if(nodeDisabled != null && nodeDisabled.getTextContent().equals("true"))
+			item.add(label);
+			item.add(fileSelect);
+			
+			requestFields.put(nodeRef.getTextContent(), fileSelect);
+		}
+		else
 		{
-			input.setEnabled(false);
+			Input input = new Input();
+			input.setPreferredSize(new Dimension(300, 22));
+			
+			if(nodeValue != null)
+			{
+				input.setText(nodeValue.getTextContent());
+			}
+
+			if(nodeDisabled != null && nodeDisabled.getTextContent().equals("true"))
+			{
+				input.setEnabled(false);
+			}
+			
+			item.add(label);
+			item.add(input);
+			
+			requestFields.put(nodeRef.getTextContent(), input);
 		}
-
-		item.add(label);
-		item.add(input);
-
-
-		requestFields.put(nodeRef.getTextContent(), input);
 
 		if(nodeType != null && nodeType.getTextContent().equals("hidden"))
 		{
@@ -380,7 +506,7 @@ public class FormPanel extends JPanel
 		Node nodeChildren = this.getChildNode(node, "children");
 		
 		JPanel item = new JPanel();
-		item.setLayout(new FlowLayout());
+		item.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 		JLabel label = new JLabel(nodeLabel.getTextContent());
 		label.setPreferredSize(new Dimension(100, 22));
@@ -429,25 +555,6 @@ public class FormPanel extends JPanel
 		return null;
 	}
 
-	protected SelectItem[] getSelectOptions(Node node)
-	{
-		ArrayList<Node> options = this.getChildNodes(node, "item");
-		SelectItem[] items = new SelectItem[options.size()];
-
-		for(int i = 0; i < options.size(); i++)
-		{
-			Node nodeLabel = this.getChildNode(options.get(i), "label");
-			Node nodeValue = this.getChildNode(options.get(i), "value");
-
-			if(nodeLabel != null && nodeValue != null)
-			{
-				items[i] = new SelectItem(nodeValue.getTextContent(), nodeLabel.getTextContent());
-			}
-		}
-
-		return items;
-	}
-
 	protected Container parseTextarea(Node node)
 	{
 		Node nodeRef = this.getChildNode(node, "ref");
@@ -455,13 +562,13 @@ public class FormPanel extends JPanel
 		Node nodeValue = this.getChildNode(node, "value");
 
 		JPanel item = new JPanel();
-		item.setLayout(new FlowLayout());
+		item.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 		JLabel label = new JLabel(nodeLabel.getTextContent());
 		label.setPreferredSize(new Dimension(100, 22));
 
 		Textarea input = new Textarea();
-		JScrollPane scpInput = new JScrollPane(input);
+		RTextScrollPane scpInput = new RTextScrollPane(input);
 		scpInput.setPreferredSize(new Dimension(300, 200));
 
 		if(nodeValue != null)
@@ -508,7 +615,7 @@ public class FormPanel extends JPanel
 	protected Container parsePanel(Node node) throws Exception
 	{
 		JPanel panel = new JPanel();
-		panel.setLayout(new FlowLayout(FlowLayout.LEADING));
+		panel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 		JPanel item = new JPanel();
 		item.setLayout(new BoxLayout(item, BoxLayout.PAGE_AXIS));
@@ -546,7 +653,7 @@ public class FormPanel extends JPanel
 		Node nodeSrc = this.getChildNode(node, "src");
 
 		JPanel item = new JPanel();
-		item.setLayout(new FlowLayout());
+		item.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 		JLabel label = new JLabel(nodeLabel.getTextContent());
 		label.setPreferredSize(new Dimension(100, 22));
@@ -612,6 +719,7 @@ public class FormPanel extends JPanel
 		return item;
 	}
 
+	/*
 	protected Container parseCheckboxList(Node node)
 	{
 		Node nodeRef = this.getChildNode(node, "ref");
@@ -636,6 +744,7 @@ public class FormPanel extends JPanel
 
 		return item;
 	}
+	*/
 
 	protected Container parseCaptcha(Node node)
 	{
@@ -646,7 +755,7 @@ public class FormPanel extends JPanel
 		Node nodeType = this.getChildNode(node, "type");
 
 		JPanel item = new JPanel();
-		item.setLayout(new FlowLayout());
+		item.setLayout(new FlowLayout(FlowLayout.LEFT));
 
 		JLabel label = new JLabel(nodeLabel.getTextContent());
 		label.setPreferredSize(new Dimension(100, 22));
@@ -678,6 +787,25 @@ public class FormPanel extends JPanel
 		{
 			return item;
 		}
+	}
+
+	protected SelectItem[] getSelectOptions(Node node)
+	{
+		ArrayList<Node> options = this.getChildNodes(node, "item");
+		SelectItem[] items = new SelectItem[options.size()];
+
+		for(int i = 0; i < options.size(); i++)
+		{
+			Node nodeLabel = this.getChildNode(options.get(i), "label");
+			Node nodeValue = this.getChildNode(options.get(i), "value");
+
+			if(nodeLabel != null && nodeValue != null)
+			{
+				items[i] = new SelectItem(nodeValue.getTextContent(), nodeLabel.getTextContent());
+			}
+		}
+
+		return items;
 	}
 	
 	protected ArrayList<Node> getChildNodes(Node node, String nodeName)

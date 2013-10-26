@@ -22,6 +22,10 @@
 
 package com.k42b3.zubat.model;
 
+import com.k42b3.neodym.Service;
+import com.k42b3.neodym.data.Endpoint;
+import com.k42b3.zubat.Zubat;
+
 /**
  * Page
  *
@@ -87,5 +91,12 @@ public class Page
 	public String toString()
 	{
 		return title;
+	}
+	
+	public Endpoint getApi() throws Exception
+	{
+		Service service = Zubat.getServices().getService(serviceType);
+
+		return new Endpoint(Zubat.getHttp(), service);
 	}
 }

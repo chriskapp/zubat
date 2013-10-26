@@ -34,7 +34,8 @@ import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
+import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.zubat.basic.ViewPanel;
 import com.k42b3.zubat.container.ContainerEvent;
 import com.k42b3.zubat.container.ContainerEventListener;
@@ -56,11 +57,11 @@ public class Container extends ServiceAbstract
 	protected TreePanel treePanel;
 	protected com.k42b3.zubat.basic.Container container;
 
-	public Container(ServiceItem item) throws Exception
+	public Container(Endpoint api) throws Exception
 	{
-		super(item);
+		super(api);
 
-		container = new com.k42b3.zubat.basic.Container(item);
+		container = new com.k42b3.zubat.basic.Container(api);
 
 		// event handler
 		addContainerListener(new ContainerSelfListener());

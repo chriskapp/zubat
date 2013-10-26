@@ -89,7 +89,7 @@ public class TrafficTableModel extends AbstractTableModel
 		if(rowIndex >= 0 && rowIndex < rows.size())
 		{
 			HttpRequestBase request = rows.get(rowIndex).getRequest();
-			HttpResponse response = rows.get(rowIndex).getResponse();
+			HttpResponse response = rows.get(rowIndex).getResponse().getResponse();
 
 			switch(columnIndex)
 			{

@@ -39,7 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.k42b3.neodym.Http;
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
 import com.k42b3.neodym.Services;
 import com.k42b3.neodym.TrafficItem;
 import com.k42b3.neodym.TrafficListenerInterface;
@@ -119,9 +119,9 @@ public class Auth extends JFrame
 			availableServices = new Services(http, Configuration.getInstance().getBaseUrl());
 			availableServices.discover();
 
-			ServiceItem request = availableServices.getItem("http://oauth.net/core/1.0/endpoint/request");
-			ServiceItem authorization = availableServices.getItem("http://oauth.net/core/1.0/endpoint/authorize");
-			ServiceItem access = availableServices.getItem("http://oauth.net/core/1.0/endpoint/access");
+			Service request = availableServices.getService("http://oauth.net/core/1.0/endpoint/request");
+			Service authorization = availableServices.getService("http://oauth.net/core/1.0/endpoint/authorize");
+			Service access = availableServices.getService("http://oauth.net/core/1.0/endpoint/access");
 
 			if(request == null)
 			{

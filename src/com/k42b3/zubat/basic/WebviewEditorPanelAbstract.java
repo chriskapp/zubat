@@ -27,6 +27,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -49,7 +50,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.k42b3.neodym.Http;
-import com.k42b3.neodym.Message;
+import com.k42b3.neodym.data.Message;
 import com.k42b3.zubat.Configuration;
 import com.k42b3.zubat.Zubat;
 import com.k42b3.zubat.container.ContainerEvent;
@@ -94,11 +95,14 @@ abstract public class WebviewEditorPanelAbstract extends com.k42b3.zubat.basic.E
 
 		if(recordId > 0)
 		{
-			form = new FormPanel(item.getUri() + "/form?method=update&id=" + recordId);
+			form = new FormPanel(page.getApi(), FormPanel.UPDATE, recordId);
 		}
 		else
 		{
-			form = new FormPanel(item.getUri() + "/form?method=create&pageId=" + page.getId());
+			HashMap<String, String> params = new HashMap<String, String>();
+			params.put("pageId", "" + page.getId());
+
+			form = new FormPanel(page.getApi(), FormPanel.CREATE, params);
 		}
 		
 		// menu
@@ -198,7 +202,7 @@ abstract public class WebviewEditorPanelAbstract extends com.k42b3.zubat.basic.E
 
 	protected int getRecordId() throws Exception
 	{
-		Document response = Zubat.getHttp().requestXml(Http.GET, item.getUri() + "?format=xml&fields=id&filterBy=pageId&filterOp=equals&filterValue=" + page.getId());
+		Document response = Zubat.getHttp().requestXml(Http.GET, api.getService().getUri() + "?format=xml&fields=id&filterBy=pageId&filterOp=equals&filterValue=" + page.getId());
 		NodeList entries = response.getElementsByTagName("entry");
 		
 		if(entries.getLength() > 0)
@@ -243,19 +247,16 @@ abstract public class WebviewEditorPanelAbstract extends com.k42b3.zubat.basic.E
 			setRequestFields();
 			
 			// send request
-			Document doc = form.sendRequest();
-			Element rootElement = (Element) doc.getDocumentElement();
+			Message message = form.sendRequest();
 
-			// get message
-			Message msg = Message.parseMessage(rootElement);
-
-			if(msg.hasSuccess())
+			if(message.hasSuccess())
 			{
 				if(recordId == 0)
 				{
 					// we have created a new page set to update
 					recordId = getRecordId();
-					form = new FormPanel(item.getUri() + "/form?method=update&id=" + recordId);
+
+					form = new FormPanel(page.getApi(), FormPanel.UPDATE, recordId);
 				}
 
 				// reload
@@ -267,12 +268,6 @@ abstract public class WebviewEditorPanelAbstract extends com.k42b3.zubat.basic.E
 					}
 
 				});
-
-				JOptionPane.showMessageDialog(null, msg.getText(), "Response", JOptionPane.INFORMATION_MESSAGE);
-			}
-			else
-			{
-				throw new Exception(msg.getText());
 			}
 		}
 		catch(Exception ex)

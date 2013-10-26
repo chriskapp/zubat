@@ -37,7 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 
-import com.k42b3.neodym.ServiceItem;
+import com.k42b3.neodym.Service;
 
 /**
  * MenuPanel
@@ -67,9 +67,9 @@ public class MenuPanel extends JMenuBar
 	protected JMenu buildContentMenu()
 	{
 		JMenu menu = new JMenu("Content");
-		ServiceItem item;
+		Service item;
 
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/content/page");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/content/page");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Page");
@@ -78,7 +78,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/content/page"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/content/page"));
 				}
 
 	        });
@@ -86,7 +86,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 		
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/content/gadget");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/content/gadget");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Gadget");
@@ -95,7 +95,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/content/gadget"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/content/gadget"));
 				}
 
 	        });
@@ -103,7 +103,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/media");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/media");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Media");
@@ -112,7 +112,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/media"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/media"));
 				}
 
 	        });
@@ -126,9 +126,9 @@ public class MenuPanel extends JMenuBar
 	protected JMenu buildUserMenu()
 	{
 		JMenu menu = new JMenu("User");
-		ServiceItem item;
+		Service item;
 		
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/user/account");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/user/account");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Account");
@@ -137,7 +137,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/user/account"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/user/account"));
 				}
 
 	        });
@@ -145,7 +145,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/user/group");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/user/group");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Group");
@@ -154,7 +154,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/user/group"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/user/group"));
 				}
 
 	        });
@@ -162,7 +162,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/user/activity");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/user/activity");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Activity");
@@ -171,7 +171,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/user/activity"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/user/activity"));
 				}
 
 	        });
@@ -185,9 +185,9 @@ public class MenuPanel extends JMenuBar
 	protected JMenu buildSystemMenu()
 	{
 		JMenu menu = new JMenu("System");
-		ServiceItem item;
+		Service item;
 		
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/core/service");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/core/service");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Service");
@@ -196,7 +196,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/core/service"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/core/service"));
 				}
 
 	        });
@@ -204,7 +204,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/core/registry");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/core/registry");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Registry");
@@ -213,7 +213,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/core/registry"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/core/registry"));
 				}
 
 	        });
@@ -221,7 +221,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/mail");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/mail");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Mail");
@@ -230,7 +230,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/mail"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/mail"));
 				}
 
 	        });
@@ -238,7 +238,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/oauth");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/oauth");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Oauth");
@@ -247,7 +247,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/oauth"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/oauth"));
 				}
 
 	        });
@@ -255,7 +255,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 		
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/country");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/country");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Country");
@@ -264,7 +264,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/country"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/country"));
 				}
 
 	        });
@@ -272,7 +272,7 @@ public class MenuPanel extends JMenuBar
 			menu.add(menuItem);
 		}
 
-		item = Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/phpinfo");
+		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/phpinfo");
 		if(item != null)
 		{
 			JMenuItem menuItem = new JMenuItem("Phpinfo");
@@ -281,7 +281,7 @@ public class MenuPanel extends JMenuBar
 
 				public void actionPerformed(ActionEvent e)
 				{
-					zubat.loadContainer(Zubat.getAvailableServices().getItem("http://ns.amun-project.org/2011/amun/service/phpinfo"));
+					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/phpinfo"));
 				}
 
 	        });

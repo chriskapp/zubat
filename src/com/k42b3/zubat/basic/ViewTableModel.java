@@ -22,17 +22,17 @@
 
 package com.k42b3.zubat.basic;
 
-import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import com.k42b3.neodym.Http;
+import com.k42b3.neodym.Service;
+import com.k42b3.neodym.data.Endpoint;
+import com.k42b3.neodym.data.Record;
+import com.k42b3.neodym.data.ResultSet;
 import com.k42b3.zubat.Zubat;
 
 /**
@@ -46,46 +46,47 @@ public class ViewTableModel extends AbstractTableModel
 {
 	private static final long serialVersionUID = 1L;
 
-	protected String baseUrl;
-	protected String url;
-
-	protected ArrayList<String> supportedFields;
-	protected ArrayList<String> fields = new ArrayList<String>();
-	protected Object[][] rows;
-
 	protected int totalResults;
 	protected int startIndex;
 	protected int itemsPerPage;
-
-	private Logger logger = Logger.getLogger("com.k42b3.zubat");
 	
-	public ViewTableModel(String url) throws Exception
-	{
-		this.baseUrl = url;
-		this.url = url;
-	}
+	protected Endpoint api;
+	protected List<String> fields;
 
-	public void loadData(ArrayList<String> fields) throws Exception
+	protected Object[][] rows;
+	protected Logger logger = Logger.getLogger("com.k42b3.zubat");
+	
+	public ViewTableModel(Endpoint api, List<String> fields) throws Exception
 	{
+		this.api = api;
 		this.fields = fields;
-
-		this.request(url);
 	}
-
+	
+	public void loadData(int startIndex, int count, String filterBy, String filterOp, String filterValue) throws Exception
+	{
+		this.request(startIndex, count, filterBy, filterOp, filterValue);
+	}
+	
+	public void loadData(String filterBy, String filterOp, String filterValue) throws Exception
+	{
+		this.loadData(startIndex, itemsPerPage, filterBy, filterOp, filterValue);
+	}
+	
+	public void loadData(int startIndex, int count) throws Exception
+	{
+		this.loadData(startIndex, count, null, null, null);
+	}
+	
 	public void loadData() throws Exception
 	{
-		this.fields = null;
-
-		this.request(url);
+		this.loadData(0, 0);
 	}
 
 	public void nextPage() throws Exception
 	{
 		int index = startIndex + itemsPerPage;
-
-		String url = Http.appendQuery(this.url, "count=" + itemsPerPage + "&startIndex=" + index);
-
-		this.request(url);
+	
+		this.loadData(index, itemsPerPage);
 	}
 
 	public void prevPage() throws Exception
@@ -93,44 +94,10 @@ public class ViewTableModel extends AbstractTableModel
 		int index = startIndex - itemsPerPage;
 		index = index < 0 ? 0 : index;
 
-		String url = Http.appendQuery(this.url, "count=" + itemsPerPage + "&startIndex=" + index);
-
-		this.request(url);
+		this.loadData(index, itemsPerPage);
 	}
 
-	public String getBaseUrl()
-	{
-		return baseUrl;
-	}
-
-	public String getUrl()
-	{
-		return url;
-	}
-
-	public void setUrl(String url)
-	{
-		this.url = url;
-	}
-
-	public ArrayList<String> getSupportedFields()
-	{
-		if(supportedFields == null)
-		{
-			try
-			{
-				supportedFields = requestSupportedFields(url);
-			}
-			catch(Exception e)
-			{
-				Zubat.handleException(e);
-			}
-		}
-
-		return supportedFields;
-	}
-
-	public ArrayList<String> getFields()
+	public List<String> getFields()
 	{
 		return fields;
 	}
@@ -157,7 +124,10 @@ public class ViewTableModel extends AbstractTableModel
 
 	public String getColumnName(int columnIndex)
 	{
-		return fields.get(columnIndex);
+		String columnName = fields.get(columnIndex);
+		columnName = Character.toUpperCase(columnName.charAt(0)) + columnName.substring(1);
+
+		return columnName;
 	}
 
 	public int getRowCount() 
@@ -178,98 +148,71 @@ public class ViewTableModel extends AbstractTableModel
 		return null;
 	}
 	
-	private void request(String url) throws Exception
+	public boolean isCellEditable(int rowIndex, int columnIndex)
+	{
+		return false;
+	}
+
+	public void setValueAt(Object aValue, int rowIndex, int columnIndex)
+	{
+		if(rowIndex >= 0 && rowIndex < rows.length)
+		{
+			if(columnIndex >= 0 && columnIndex < rows[rowIndex].length)
+			{
+				rows[rowIndex][columnIndex] = aValue;
+			}
+		}
+	}
+
+	protected void request(int startIndex, int count, String filterBy, String filterOp, String filterValue) throws Exception
 	{
 		// request
-		StringBuilder queryFields = new StringBuilder();
+		ResultSet results = api.getAll(fields, startIndex, count, filterBy, filterOp, filterValue);
 
-		for(int i = 0; i < fields.size(); i++)
-		{
-			queryFields.append(fields.get(i) + ",");
-		}
-
-		if(queryFields.length() > 0)
-		{
-			url = Http.appendQuery(url, "fields=" + queryFields.substring(0, queryFields.length() - 1));
-		}
-
-		Document doc = Zubat.getHttp().requestXml(Http.GET, url);
-
-		// get meta
-		Element totalResultsElement = (Element) doc.getElementsByTagName("totalResults").item(0);
-		Element startIndexElement = (Element) doc.getElementsByTagName("startIndex").item(0);
-		Element itemsPerPageElement = (Element) doc.getElementsByTagName("itemsPerPage").item(0);
-		NodeList entry = doc.getElementsByTagName("entry");
-
-		if(totalResultsElement != null)
-		{
-			totalResults = Integer.parseInt(totalResultsElement.getTextContent());
-		}
-
-		if(startIndexElement != null)
-		{
-			startIndex = Integer.parseInt(startIndexElement.getTextContent());
-		}
-
-		if(itemsPerPageElement != null)
-		{
-			itemsPerPage = Integer.parseInt(itemsPerPageElement.getTextContent());
-		}
+		this.totalResults = results.getTotalResults();
+		this.startIndex = results.getStartIndex();
+		this.itemsPerPage = results.getItemsPerPage();
 
 		// build row
-		rows = new Object[entry.getLength()][fields.size()];
-
-		// parse entries
-		NodeList entryList = doc.getElementsByTagName("entry");
-
-		for(int i = 0; i < entryList.getLength(); i++) 
+		int size;
+		if(fields == null)
 		{
-			Node serviceNode = entryList.item(i);
-			Element serviceElement = (Element) serviceNode;
-
-			for(int j = 0; j < fields.size(); j++)
+			if(results.size() > 0)
 			{
-				Element valueElement = (Element) serviceElement.getElementsByTagName(fields.get(j)).item(0);
+				size = results.get(0).size();
+			}
+			else
+			{
+				throw new Exception("Can not determin row size of empty response");
+			}
+		}
+		else
+		{
+			size = getColumnCount();
+		}
 
-				if(valueElement != null)
-				{
-					rows[i][j] = valueElement.getTextContent();
-				}
-				else
-				{
-					rows[i][j] = null;
-				}
+		rows = new Object[results.size()][size];
+
+		// get entries
+		for(int i = 0; i < results.size(); i++)
+		{
+			Record record = results.get(i);
+			Iterator<Entry<String, String>> it = record.entrySet().iterator();
+			int j = 0;
+			
+			while(it.hasNext())
+			{
+				Entry<String, String> entry = it.next();
+
+				rows[i][j] = entry.getValue();
+
+				j++;
 			}
 		}
 
-		logger.info("Received: " + entryList.getLength() + " rows");
+		logger.info("Received " + results.size() + " rows");
 
 		// fire data changed
 		this.fireTableDataChanged();
-	}
-
-	private ArrayList<String> requestSupportedFields(String url) throws Exception
-	{
-		// request
-		Document doc = Zubat.getHttp().requestXml(Http.GET, url + "/@supportedFields");
-
-		// parse fields
-		ArrayList<String> supportedFields = new ArrayList<String>();
-		NodeList itemList = doc.getElementsByTagName("item");
-		
-		for(int i = 0; i < itemList.getLength(); i++) 
-		{
-			Node itemNode = itemList.item(i);
-			Element itemElement = (Element) itemNode;
-			
-			if(itemElement != null)
-			{
-				supportedFields.add(itemElement.getTextContent());
-			}
-		}
-		
-		logger.info("Found " + supportedFields.size() + " supported fields");
-		
-		return supportedFields;
 	}
 }
