@@ -28,7 +28,6 @@ import java.awt.FlowLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import com.k42b3.neodym.Service;
 import com.k42b3.neodym.data.Endpoint;
 
 /**

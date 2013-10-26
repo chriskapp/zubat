@@ -27,8 +27,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +35,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import com.k42b3.neodym.Service;
 import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.zubat.basic.ViewTableModel;
 import com.k42b3.zubat.form.FormElementInterface;

@@ -29,11 +29,9 @@ import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
 
-import com.k42b3.neodym.Service;
 import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.neodym.data.Record;
 import com.k42b3.neodym.data.ResultSet;
-import com.k42b3.zubat.Zubat;
 
 /**
  * ViewTableModel

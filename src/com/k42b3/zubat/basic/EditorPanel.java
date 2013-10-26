@@ -26,7 +26,6 @@ import java.util.ArrayList;
 
 import javax.swing.JComponent;
 
-import com.k42b3.neodym.Service;
 import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.zubat.Configuration;
 import com.k42b3.zubat.Zubat;

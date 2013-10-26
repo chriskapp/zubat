@@ -27,7 +27,9 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -45,12 +47,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import com.k42b3.neodym.Http;
 import com.k42b3.neodym.data.Message;
+import com.k42b3.neodym.data.ResultSet;
 import com.k42b3.zubat.Configuration;
 import com.k42b3.zubat.Zubat;
 import com.k42b3.zubat.container.ContainerEvent;
@@ -202,26 +200,18 @@ abstract public class WebviewEditorPanelAbstract extends com.k42b3.zubat.basic.E
 
 	protected int getRecordId() throws Exception
 	{
-		Document response = Zubat.getHttp().requestXml(Http.GET, api.getService().getUri() + "?format=xml&fields=id&filterBy=pageId&filterOp=equals&filterValue=" + page.getId());
-		NodeList entries = response.getElementsByTagName("entry");
+		List<String> fields = new ArrayList<String>();
+		fields.add("id");
+
+		ResultSet result = page.getApi().getAll(fields, 0, 1, "pageId", "equals", "" + page.getId());
 		
-		if(entries.getLength() > 0)
+		if(result.size() > 0)
 		{
-			Element item = (Element) entries.item(0);
-			NodeList id = item.getElementsByTagName("id");
-			
-			if(id.getLength() > 0)
-			{
-				return Integer.parseInt(id.item(0).getTextContent());
-			}
-			else
-			{
-				throw new Exception("Found no id column");
-			}
+			return result.get(0).getIntField("id");
 		}
 		else
 		{
-			return 0;
+			throw new Exception("Found nor record");
 		}
 	}
 	

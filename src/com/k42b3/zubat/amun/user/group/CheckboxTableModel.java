@@ -26,11 +26,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.k42b3.neodym.Service;
 import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.neodym.data.Record;
 import com.k42b3.neodym.data.ResultSet;
-import com.k42b3.zubat.Zubat;
 import com.k42b3.zubat.basic.ViewTableModel;
 
 /**

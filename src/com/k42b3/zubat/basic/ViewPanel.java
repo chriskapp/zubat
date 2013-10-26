@@ -41,7 +41,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-import com.k42b3.neodym.Service;
 import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.zubat.Zubat;
 

@@ -34,7 +34,6 @@ import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import com.k42b3.neodym.Service;
 import com.k42b3.neodym.data.Endpoint;
 import com.k42b3.zubat.basic.ViewPanel;
 import com.k42b3.zubat.container.ContainerEvent;
