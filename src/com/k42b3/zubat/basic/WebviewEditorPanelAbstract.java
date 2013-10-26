@@ -211,7 +211,7 @@ abstract public class WebviewEditorPanelAbstract extends com.k42b3.zubat.basic.E
 		}
 		else
 		{
-			throw new Exception("Found nor record");
+			return 0;
 		}
 	}
 	
