@@ -75,8 +75,7 @@ public class Zubat extends JFrame
 	public Zubat(boolean debugMode)
 	{
 		this.setTitle("zubat (version: " + Zubat.version + ")");
-		this.setLocation(100, 100);
-		this.setSize(820, 600);
+		this.setPreferredSize(new Dimension(820, 600));
 		this.setMinimumSize(this.getSize());
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLayout(new BorderLayout());

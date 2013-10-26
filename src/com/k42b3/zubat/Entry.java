@@ -86,6 +86,8 @@ public class Entry
 						Entry.setLookAndFeel();
 
 						Auth panel = new Auth();
+						panel.pack();
+						panel.setLocationRelativeTo(null);
 						panel.setVisible(true);
 					}
 
@@ -100,6 +102,8 @@ public class Entry
 						Entry.setLookAndFeel();
 
 						Zubat panel = new Zubat(debugMode);
+						panel.pack();
+						panel.setLocationRelativeTo(null);
 						panel.setVisible(true);
 					}
 
