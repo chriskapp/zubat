@@ -10,8 +10,9 @@ TODO
 
 - [x] Media file upload
 - [x] Possibility to set user group rights
-- [ ] Add settings menu where users can edit all values from the config
-- [ ] Add icon toolbar
+- [ ] Add settings menu where users can edit all values from the config xml
+- [ ] Possibility to reorder a page through the tree
 - [ ] Media upload multiple files
-- [ ] Add option to set an git repo url where all contents gets mirrored in this
-      way we could have versioning for the complete content of the website
+- [ ] Add option to set an git repo url. All changes are also commited to this
+      repo in this way we could have versioning for the complete content of the 
+      website

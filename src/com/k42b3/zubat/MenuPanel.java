@@ -22,18 +22,24 @@
 
 package com.k42b3.zubat;
 
+import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.net.URI;
+import java.net.URL;
 
 import javax.swing.Box;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 
@@ -46,7 +52,7 @@ import com.k42b3.neodym.Service;
  * @license http://www.gnu.org/licenses/gpl.html GPLv3
  * @link    https://github.com/k42b3/zubat
  */
-public class MenuPanel extends JMenuBar
+public class MenuPanel extends JPanel
 {
 	private static final long serialVersionUID = 1L;
 
@@ -54,14 +60,20 @@ public class MenuPanel extends JMenuBar
 
 	public MenuPanel(Zubat zubatInstance)
 	{
+		super(new BorderLayout());
+
 		this.zubat = zubatInstance;
 
-		this.add(this.buildContentMenu());
-		this.add(this.buildUserMenu());
-		this.add(this.buildSystemMenu());
-		this.add(this.buildHelpMenu());
-		this.add(Box.createHorizontalGlue());
-		this.add(this.buildInfo());
+		// menu
+		JMenuBar menu = new JMenuBar();
+		menu.add(this.buildContentMenu());
+		menu.add(this.buildUserMenu());
+		menu.add(this.buildSystemMenu());
+		menu.add(this.buildHelpMenu());
+		menu.add(Box.createHorizontalGlue());
+		menu.add(this.buildInfo());
+
+		add(menu, BorderLayout.CENTER);
 	}
 
 	protected JMenu buildContentMenu()
@@ -265,23 +277,6 @@ public class MenuPanel extends JMenuBar
 				public void actionPerformed(ActionEvent e)
 				{
 					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/country"));
-				}
-
-	        });
-			
-			menu.add(menuItem);
-		}
-
-		item = Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/phpinfo");
-		if(item != null)
-		{
-			JMenuItem menuItem = new JMenuItem("Phpinfo");
-			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, ActionEvent.CTRL_MASK));
-			menuItem.addActionListener(new ActionListener(){
-
-				public void actionPerformed(ActionEvent e)
-				{
-					zubat.loadContainer(Zubat.getServices().getService("http://ns.amun-project.org/2011/amun/service/phpinfo"));
 				}
 
 	        });
