@@ -23,6 +23,7 @@
 package com.k42b3.zubat;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -68,8 +69,7 @@ public class Auth extends JFrame
 	public Auth()
 	{
 		this.setTitle("zubat (version: " + Zubat.version + ")");
-		this.setLocation(100, 100);
-		this.setSize(500, 200);
+		this.setPreferredSize(new Dimension(400, 200));
 		this.setMinimumSize(this.getSize());
 		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -77,16 +77,67 @@ public class Auth extends JFrame
 
 		try
 		{
+			// buttons
+			JPanel buttons = new JPanel();
+			buttons.setLayout(new FlowLayout(FlowLayout.LEADING));
+
+			JButton btnLogin = new JButton("Login");
+			btnLogin.addActionListener(new ActionListener() {
+
+				public void actionPerformed(ActionEvent e)
+				{
+					try
+					{
+						if(oauth.requestToken())
+						{
+							if(oauth.authorizeToken())
+							{
+								if(oauth.accessToken())
+								{
+									JOptionPane.showMessageDialog(null, "You have successful authenticated");
+
+									saveConfig(oauth.getToken(), oauth.getTokenSecret());
+								}
+							}
+						}
+					}
+					catch(Exception ex)
+					{
+						logger.warning(ex.getMessage());
+					}
+				}
+
+			});
+
+			JButton btnClose = new JButton("Close");
+			btnClose.addActionListener(new ActionListener() {
+
+				public void actionPerformed(ActionEvent e)
+				{
+					System.exit(0);
+				}
+
+			});
+
+			buttons.add(btnLogin);
+			buttons.add(btnClose);
+
+			this.add(buttons, BorderLayout.SOUTH);
+
 			// status
 			JLabel status;
 
-			if(Configuration.getInstance().getConsumerKey().trim().isEmpty())
+			if(Configuration.getInstance().getConsumerKey().isEmpty())
 			{
 				status = new JLabel("Please provide a consumer key in the configuration.");
+				
+				btnLogin.setEnabled(false);
 			}
-			else if(Configuration.getInstance().getConsumerSecret().trim().isEmpty())
+			else if(Configuration.getInstance().getConsumerSecret().isEmpty())
 			{
 				status = new JLabel("Please provide a consumer secret in the configuration.");
+				
+				btnLogin.setEnabled(false);
 			}
 			else
 			{
@@ -96,7 +147,6 @@ public class Auth extends JFrame
 			status.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
 			this.add(status, BorderLayout.NORTH);
-
 
 			// traffic panel
 			trafficTm = new TrafficTableModel();
@@ -113,7 +163,6 @@ public class Auth extends JFrame
 			TrafficPanel trafficPanel = new TrafficPanel(trafficTm);
 
 			this.add(trafficPanel, BorderLayout.CENTER);
-
 
 			// oauth config
 			availableServices = new Services(http, Configuration.getInstance().getBaseUrl());
@@ -143,58 +192,10 @@ public class Auth extends JFrame
 		}
 		catch(Exception e)
 		{
+			JOptionPane.showMessageDialog(null, e.getMessage());
+
 			Zubat.handleException(e);
 		}
-
-		
-		// buttons
-		JPanel buttons = new JPanel();
-
-		buttons.setLayout(new FlowLayout(FlowLayout.LEADING));
-		
-		JButton btnLogin = new JButton("Login");
-		JButton btnClose = new JButton("Close");
-
-		btnLogin.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e)
-			{
-				try
-				{
-					if(oauth.requestToken())
-					{
-						if(oauth.authorizeToken())
-						{
-							if(oauth.accessToken())
-							{
-								JOptionPane.showMessageDialog(null, "You have successful authenticated");
-
-								saveConfig(oauth.getToken(), oauth.getTokenSecret());
-							}
-						}
-					}
-				}
-				catch(Exception ex)
-				{
-					logger.warning(ex.getMessage());
-				}
-			}
-
-		});
-
-		btnClose.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent e)
-			{
-				System.exit(0);
-			}
-
-		});
-
-		buttons.add(btnLogin);
-		buttons.add(btnClose);
-
-		this.add(buttons, BorderLayout.SOUTH);
 	}
 	
 	private void saveConfig(String token, String tokenSecret)
@@ -203,7 +204,6 @@ public class Auth extends JFrame
 		{
 			// load dom
 			Document doc = Configuration.loadDocument();
-
 
 			// add token / tokenSecret element
 			Element tokenElement = (Element) doc.getElementsByTagName("token").item(0);
@@ -232,7 +232,6 @@ public class Auth extends JFrame
 
 				doc.appendChild(tokenSecretElement);
 			}
-
 
 			// save dom
 			Configuration.saveDocument(doc);
