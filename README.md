@@ -1,18 +1,26 @@
 zubat
 =====
 
+About
+-----
+
 An java application to access the API of amun. It is used to debug and control a 
 website based on amun. This is the reference implementation howto access the 
 api. So feel free to hack and extend.
 
+Installation
+-----
 
-TODO
+Because Amun uses Oauth for API authentication Zubat needs to obtain an token
+and token secret in order to access the API. If you start Zubat and the config
+doesnt contain an token and token secret it will start the authentication 
+process and try to obtain such tokens. The configuration must contain an 
+consumerKey and consumerSecret. You can look at the table amun_oauth to get an 
+consumerKey and consumerSecret.
 
-- [x] Media file upload
-- [x] Possibility to set user group rights
-- [ ] Add settings menu where users can edit all values from the config xml
-- [ ] Possibility to reorder a page through the tree
-- [ ] Media upload multiple files
-- [ ] Add option to set an git repo url. All changes are also commited to this
-      repo in this way we could have versioning for the complete content of the 
-      website
+If the authentication process starts simply click the "Login" button and login
+with your credentials to the Amun website and allow the application access.
+If the authentication was successful the obtained token and token secret gets
+written into the config file. Restart the application and you should be able
+to work with Zubat
+
