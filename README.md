@@ -22,5 +22,7 @@ If the authentication process starts simply click the "Login" button and login
 with your credentials to the Amun website and allow the application access.
 If the authentication was successful the obtained token and token secret gets
 written into the config file. Restart the application and you should be able
-to work with Zubat
+to work with Zubat.
 
+Zubat uses the JavaFX Webview (based on Webkit) to display web content. You need 
+at least Java 7u6 because since this release JavaFX is included.

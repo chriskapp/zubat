@@ -214,7 +214,7 @@ public class FormPanel extends JPanel
 			Document response = Zubat.getHttp().requestXml(Http.POST, api.getService().getUri(), null, entityBuilder.build());
 			
 			// parse response
-			Message message = Message.parseMessage(response.getDocumentElement());
+			Message message = Message.parseMessage(response);
 
 			if(message.hasSuccess())
 			{
@@ -318,7 +318,7 @@ public class FormPanel extends JPanel
 			rootElement.normalize();
 
 			// get message
-			Message msg = Message.parseMessage(rootElement);
+			Message msg = Message.parseMessage(doc);
 
 			if(msg != null && !msg.hasSuccess())
 			{

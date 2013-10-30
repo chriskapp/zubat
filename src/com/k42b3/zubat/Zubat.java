@@ -33,12 +33,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import org.w3c.dom.Document;
+
 import com.k42b3.neodym.Http;
 import com.k42b3.neodym.Service;
 import com.k42b3.neodym.Services;
 import com.k42b3.neodym.TrafficItem;
 import com.k42b3.neodym.TrafficListenerInterface;
 import com.k42b3.neodym.data.Endpoint;
+import com.k42b3.neodym.data.Message;
 import com.k42b3.neodym.oauth.Oauth;
 import com.k42b3.neodym.oauth.OauthProvider;
 import com.k42b3.zubat.container.ContainerEvent;
@@ -134,7 +137,7 @@ public class Zubat extends JFrame
 		catch(Exception e)
 		{
 			JPanel panel = new JPanel(new FlowLayout());
-			panel.add(new JLabel(e.getMessage()));
+			panel.add(new JLabel("<html>" + e.getMessage() + "</html>"));
 			
 			this.add(panel, BorderLayout.CENTER);
 
@@ -176,7 +179,17 @@ public class Zubat extends JFrame
 
 		if(item != null)
 		{
-			account = Account.buildAccount(http.requestXml(Http.GET, item.getUri()));
+			Document response = http.requestXml(Http.GET, item.getUri());
+			Message message = Message.parseMessage(response);
+
+			if(message != null && !message.hasSuccess())
+			{
+				throw new Exception(message.getText());
+			}
+			else
+			{
+				account = Account.buildAccount(response);
+			}
 		}
 		else
 		{
