@@ -34,15 +34,15 @@ Zubat uses the following libraries
 
 - commons-cli-1.2  
   http://commons.apache.org/cli
-- commons-codec-1.8
+- commons-codec-1.8  
   http://commons.apache.org/codec
 - commons-lang3-3.1  
   http://commons.apache.org/lang
-- commons-logging-1.1.3
+- commons-logging-1.1.3  
   http://commons.apache.org/logging
-- httpclient-4.3.1
+- httpclient-4.3.1  
   http://hc.apache.org
-- jfxrt
+- jfxrt  
   JavaFX library shipped with JDK 7u6
 - neodym-1.0  
   https://github.com/k42b3/neodym
