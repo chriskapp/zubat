@@ -26,3 +26,21 @@ to work with Zubat.
 
 Zubat uses the JavaFX Webview (based on Webkit) to display web content. You need 
 at least Java 7u6 because since this release JavaFX is included.
+
+Development
+-----
+
+Zubat uses the following libraries
+
+- commons-cli-1.2  
+  http://commons.apache.org/cli
+- commons-lang3-3.1  
+  http://commons.apache.org/lang
+- neodym-1.0  
+  https://github.com/k42b3/neodym
+- rsyntaxtextarea-2.5  
+  https://github.com/bobbylight/RSyntaxTextArea
+- weblaf-1.23  
+  https://github.com/mgarin/weblaf
+- jfxrt
+  JavaFX library shipped with JDK 7u6
