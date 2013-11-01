@@ -60,7 +60,7 @@ public class Zubat extends JFrame
 {
 	private static final long serialVersionUID = 1L;
 
-	public static String version = "1.0.0";
+	public static String version = "1.0.1";
 	public static boolean debugMode;
 
 	private static Http http;

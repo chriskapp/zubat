@@ -207,7 +207,7 @@ abstract public class WebviewEditorPanelAbstract extends com.k42b3.zubat.basic.E
 		
 		if(result.size() > 0)
 		{
-			return result.get(0).getIntField("id");
+			return result.get(0).getInt("id");
 		}
 		else
 		{

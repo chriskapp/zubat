@@ -77,7 +77,7 @@ public class FormPanel extends com.k42b3.zubat.basic.FormPanel
 
 			for(int i = 0; i < result.size(); i++)
 			{
-				selected.add(result.get(i).getIntField("rightId"));
+				selected.add(result.get(i).getInt("rightId"));
 			}
 
 			checkbox.setSelectedValues(selected);
