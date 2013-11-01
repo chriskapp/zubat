@@ -34,13 +34,19 @@ Zubat uses the following libraries
 
 - commons-cli-1.2  
   http://commons.apache.org/cli
+- commons-codec-1.8
+  http://commons.apache.org/codec
 - commons-lang3-3.1  
   http://commons.apache.org/lang
+- commons-logging-1.1.3
+  http://commons.apache.org/logging
+- httpclient-4.3.1
+  http://hc.apache.org
+- jfxrt
+  JavaFX library shipped with JDK 7u6
 - neodym-1.0  
   https://github.com/k42b3/neodym
 - rsyntaxtextarea-2.5  
   https://github.com/bobbylight/RSyntaxTextArea
 - weblaf-1.23  
   https://github.com/mgarin/weblaf
-- jfxrt
-  JavaFX library shipped with JDK 7u6
